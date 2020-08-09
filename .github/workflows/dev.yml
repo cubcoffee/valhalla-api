@@ -7,12 +7,17 @@ on:
 jobs:
   build:
     runs-on: ["self-hosted", "desenv"]
-
     steps:
-    - uses: actions/checkout@v2
-
     - name: Build docker image
+    - uses: actions/checkout@v2
       run: |
         ~/bin/docker rmi valhalla-api
         ~/bin/docker build -t valhalla-api .
 
+    - name: Emit repository_dispatch
+    - uses: mvasigh/dispatch-action@main
+      with:
+        token: ${{ secrets.CI-CD }}
+        repo: des-valhalla
+        owner: eduardomrodrigues
+        event_type: sample_push
