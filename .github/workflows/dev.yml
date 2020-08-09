@@ -17,7 +17,7 @@ jobs:
     - name: Emit repository_dispatch
       uses: mvasigh/dispatch-action@main
       with:
-        token: ${{ secrets.CI-CD }}
+        token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
         repo: des-valhalla
         owner: eduardomrodrigues
         event_type: sample_push
