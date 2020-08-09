@@ -16,6 +16,6 @@ jobs:
     # Runs a single command using the runners shell
     - name: Build docker image
       run: |
+        echo whoami
         docker build -t valhalla-api .
-        echo Build valhalla-api completed!
 
