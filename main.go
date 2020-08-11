@@ -1,17 +1,9 @@
 package main
 
-import (
-	"net/http"
-
-	"github.com/gin-gonic/gin"
-)
+import routers "github.com/cubcoffee/valhalla-api/router"
 
 func main() {
-	r := gin.Default()
-	r.GET("/hello", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{
-			"message": "Hello, Valhalla!",
-		})
-	})
-	r.Run()
+
+	routers.CreateRouters()
+
 }
