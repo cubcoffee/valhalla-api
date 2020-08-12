@@ -41,3 +41,15 @@ func GetEmployeeById(id int, db *gorm.DB) model.Employee {
 	db.Where("id = " + fmt.Sprint(id)).First(&emp)
 	return emp
 }
+
+func DeleteEmployeeById(id int, db *gorm.DB) {
+	emp := model.Employee{ID: id}
+	db.Delete(&emp)
+}
+
+func GetAllEmployee(db *gorm.DB) []model.Employee {
+
+	emps := []model.Employee{}
+	db.Find(&emps)
+	return emps
+}

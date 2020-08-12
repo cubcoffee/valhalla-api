@@ -18,8 +18,10 @@ func CreateRouters() {
 	v1 := r.Group("/v1")
 	{
 		v1.GET("/hello", helloHandler)
+		v1.GET("/employees", getAllEmployees)
 		v1.GET("/employee/:id", getEmployeeById)
 		v1.POST("/employee", addEmployee)
+		v1.DELETE("/employee/:id", deleteEmployeeById)
 	}
 
 	r.Run()
@@ -49,15 +51,46 @@ func getEmployeeById(c *gin.Context) {
 
 	i := c.Param("id")
 	id, err := strconv.Atoi(i)
+	if err != nil {
+		log.Print(err)
+	}
+
+	db, err := dao.InitDb()
+	if err != nil {
+		log.Print(err)
+	}
+	emp := dao.GetEmployeeById(id, db)
+	c.JSON(http.StatusOK, emp)
+
+	db.Close()
+}
+
+func deleteEmployeeById(c *gin.Context) {
+	i := c.Param("id")
+	id, err := strconv.Atoi(i)
+	if err != nil {
+		log.Print(err)
+	}
 
 	db, err := dao.InitDb()
 	if err != nil {
 		log.Print(err)
 	}
 
-	emp := dao.GetEmployeeById(id, db)
-	log.Print(emp)
-	c.JSON(http.StatusOK, emp)
+	defer db.Close()
+
+	dao.DeleteEmployeeById(id, db)
+	c.Status(http.StatusNoContent)
+
+}
+
+func getAllEmployees(c *gin.Context) {
+	db, err := dao.InitDb()
+	if err != nil {
+		log.Print(err)
+	}
+	emps := dao.GetAllEmployee(db)
+	c.JSON(http.StatusOK, emps)
 
 	db.Close()
 
