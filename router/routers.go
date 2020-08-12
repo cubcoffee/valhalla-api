@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/cubcoffee/valhalla-api/dao"
 	"github.com/cubcoffee/valhalla-api/model"
@@ -17,6 +18,7 @@ func CreateRouters() {
 	v1 := r.Group("/v1")
 	{
 		v1.GET("/hello", helloHandler)
+		v1.GET("/employee/:id", getEmployeeById)
 		v1.POST("/employee", addEmployee)
 	}
 
@@ -32,7 +34,6 @@ func helloHandler(c *gin.Context) {
 
 func addEmployee(c *gin.Context) {
 	db, err := dao.InitDb()
-
 	if err != nil {
 		log.Print(err)
 	}
@@ -40,8 +41,24 @@ func addEmployee(c *gin.Context) {
 	emp := model.Employee{}
 	reqBody, _ := ioutil.ReadAll(c.Request.Body)
 	json.Unmarshal(reqBody, &emp)
-
 	dao.AddEmployee(emp, db)
+	db.Close()
+}
+
+func getEmployeeById(c *gin.Context) {
+
+	i := c.Param("id")
+	id, err := strconv.Atoi(i)
+
+	db, err := dao.InitDb()
+	if err != nil {
+		log.Print(err)
+	}
+
+	emp := dao.GetEmployeeById(id, db)
+	log.Print(emp)
+	c.JSON(http.StatusOK, emp)
 
 	db.Close()
+
 }

@@ -1,6 +1,7 @@
 package dao
 
 import (
+	"fmt"
 	"log"
 	"os"
 
@@ -32,4 +33,11 @@ func AddEmployee(emp model.Employee, db *gorm.DB) model.Employee {
 
 	return *row
 
+}
+
+func GetEmployeeById(id int, db *gorm.DB) model.Employee {
+
+	emp := model.Employee{}
+	db.Where("id = " + fmt.Sprint(id)).First(&emp)
+	return emp
 }
