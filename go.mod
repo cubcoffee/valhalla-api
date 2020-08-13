@@ -3,7 +3,6 @@ module github.com/cubcoffee/valhalla-api
 go 1.14
 
 require (
-	github.com/docker/docker v0.7.3-0.20190506211059-b20a14b54661
 	github.com/gin-gonic/gin v1.6.3
 	github.com/go-playground/validator/v10 v10.3.0 // indirect
 	github.com/golang/protobuf v1.4.2 // indirect
