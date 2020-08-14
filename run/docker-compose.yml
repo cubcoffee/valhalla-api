@@ -10,16 +10,25 @@ services:
       - 8080:8080
     networks:
       - valhala-lan
+    environment:
+      - DB_TYPE=mysql
+      - DB_HOST=mariadb
+      - DB_PORT=3306
+      - DB_USER=root
+      - DB_NAME=valhaladb
+      - DB_PASSWORD=root
 
   mariadb:
     image: mariadb
     command: --default-authentication-plugin=mysql_native_password
     restart: always
     volumes:
-      - /tmp/mysql:/var/lib/mysql
+      - ./volumes/mysql:/var/lib/mysql
+      - ./volumes/initdb.d:/docker-entrypoint-initdb.d
     ports:
       - "3306:3306"
     environment:
+      MYSQL_DATABASE: valhaladb
       MYSQL_ROOT_PASSWORD: root
     networks:
       - valhala-lan
