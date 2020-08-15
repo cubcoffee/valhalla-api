@@ -14,7 +14,7 @@ import (
 func InitDb() (*gorm.DB, error) {
 
 	db, err := gorm.Open(os.Getenv("DB_TYPE"),
-		os.Getenv("DB_USER")+":"+os.Getenv("DB_PASSWORD")+"@("+os.Getenv("DB_HOST")+")/"+os.Getenv("DB_NAME")+"?charset=utf8&parseTime=True&loc=Local")
+		os.Getenv("DB_USER")+":"+os.Getenv("DB_PASSWORD")+"@("+os.Getenv("DB_HOST")+":"+os.Getenv("DB_PORT")+")/"+os.Getenv("DB_NAME")+"?charset=utf8&parseTime=True&loc=Local")
 
 	if err != nil {
 		return nil, err
