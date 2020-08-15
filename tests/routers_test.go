@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"net/http/httptest"
@@ -15,6 +16,7 @@ import (
 	"github.com/cubcoffee/valhalla-api/model"
 	routers "github.com/cubcoffee/valhalla-api/router"
 	"github.com/google/uuid"
+	"github.com/stretchr/testify/assert"
 	"github.com/testcontainers/testcontainers-go"
 )
 
@@ -70,14 +72,12 @@ func initCompose() string {
 func TestHello(t *testing.T) {
 
 	testServer := httptest.NewServer(routers.CreateRouters())
-
 	defer testServer.Close()
 
 	resp, err := http.Get(fmt.Sprintf("%s/v1/hello", testServer.URL))
 	if err != nil {
 		t.Fatalf("Expected no error, got %v", err)
 	}
-
 	if resp.StatusCode != 200 {
 		t.Fatalf("Expected status code 200, got %v", resp.StatusCode)
 	}
@@ -86,12 +86,33 @@ func TestHello(t *testing.T) {
 func TestPostEmployee(t *testing.T) {
 
 	testServer := httptest.NewServer(routers.CreateRouters())
-
 	defer testServer.Close()
 
 	body, _ := json.Marshal(model.Employee{ID: 99, Name: "employee_test1"})
 
 	resp, err := http.Post(fmt.Sprintf("%s/v1/employee", testServer.URL), "application/json", bytes.NewBuffer(body))
+	if err != nil {
+		t.Fatalf("Expected no error, got %v", err)
+	}
+	if resp.StatusCode != 200 {
+		t.Fatalf("Expected status code 200, got %v", resp.StatusCode)
+	}
+}
+
+func TestGetEmployee(t *testing.T) {
+
+	testServer := httptest.NewServer(routers.CreateRouters())
+	defer testServer.Close()
+
+	resp, err := http.Get(fmt.Sprintf("%s/v1/employee/1", testServer.URL))
+	if err != nil {
+		t.Fatalf("Expected no error, got %v", err)
+	}
+
+	b, err := ioutil.ReadAll(resp.Body)
+
+	assert.Equal(t, "{\"id\":1,\"name\":\"Schelb\"}", string(b), "The two words should be the same.")
+
 	if err != nil {
 		t.Fatalf("Expected no error, got %v", err)
 	}
