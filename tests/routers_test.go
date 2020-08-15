@@ -24,18 +24,20 @@ func TestMain(m *testing.M) {
 
 	identifier := initCompose()
 	time.Sleep(40 * time.Second) //tosco.. eu sei :(
+	setEnvs()
+	retCode := m.Run()
+	tearDown(identifier)
+	os.Exit(retCode)
 
+}
+
+func setEnvs() {
 	os.Setenv("DB_TYPE", "mysql")
 	os.Setenv("DB_HOST", "localhost")
 	os.Setenv("DB_PORT", "3306")
 	os.Setenv("DB_USER", "root")
 	os.Setenv("DB_NAME", "valhaladb")
 	os.Setenv("DB_PASSWORD", "root")
-
-	retCode := m.Run()
-	tearDown(identifier)
-	os.Exit(retCode)
-
 }
 
 func tearDown(identifier string) {
