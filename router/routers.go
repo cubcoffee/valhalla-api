@@ -12,7 +12,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func CreateRouters() {
+func CreateRouters() *gin.Engine {
 
 	r := gin.Default()
 	v1 := r.Group("/v1")
@@ -24,8 +24,7 @@ func CreateRouters() {
 		v1.DELETE("/employee/:id", deleteEmployeeById)
 	}
 
-	r.Run()
-
+	return r
 }
 
 func helloHandler(c *gin.Context) {
@@ -44,7 +43,7 @@ func addEmployee(c *gin.Context) {
 	reqBody, _ := ioutil.ReadAll(c.Request.Body)
 	json.Unmarshal(reqBody, &emp)
 	dao.AddEmployee(emp, db)
-	db.Close()
+	defer db.Close()
 }
 
 func getEmployeeById(c *gin.Context) {
