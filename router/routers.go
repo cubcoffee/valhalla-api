@@ -49,7 +49,7 @@ func addEmployee(c *gin.Context) {
 func getEmployeeById(c *gin.Context) {
 
 	i := c.Param("id")
-	id, err := strconv.Atoi(i)
+	id, err := strconv.ParseUint(i, 10, 64)
 	if err != nil {
 		log.Print(err)
 	}
@@ -66,7 +66,7 @@ func getEmployeeById(c *gin.Context) {
 
 func deleteEmployeeById(c *gin.Context) {
 	i := c.Param("id")
-	id, err := strconv.Atoi(i)
+	id, err := strconv.ParseUint(i, 10, 64)
 	if err != nil {
 		log.Print(err)
 	}

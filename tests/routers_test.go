@@ -101,7 +101,7 @@ func TestPostEmployee(t *testing.T) {
 	}
 }
 
-func TestGetEmployee(t *testing.T) {
+func TestGetEmployeeByID(t *testing.T) {
 
 	testServer := httptest.NewServer(routers.CreateRouters())
 	defer testServer.Close()
@@ -113,7 +113,7 @@ func TestGetEmployee(t *testing.T) {
 
 	b, err := ioutil.ReadAll(resp.Body)
 
-	assert.Equal(t, "{\"id\":1,\"name\":\"Schelb\"}", string(b), "The two words should be the same.")
+	assert.Equal(t, "{\"id\":1,\"name\":\"Schelb\",\"responsibility\":\"barbeiro\"}", string(b), "The two JSON should be the same.")
 
 	if err != nil {
 		t.Fatalf("Expected no error, got %v", err)
@@ -122,4 +122,60 @@ func TestGetEmployee(t *testing.T) {
 	if resp.StatusCode != 200 {
 		t.Fatalf("Expected status code 200, got %v", resp.StatusCode)
 	}
+}
+
+func TestGetAllEmployee(t *testing.T) {
+
+	testServer := httptest.NewServer(routers.CreateRouters())
+	defer testServer.Close()
+
+	resp, err := http.Get(fmt.Sprintf("%s/v1/employees/", testServer.URL))
+	if err != nil {
+		t.Fatalf("Expected no error, got %v", err)
+	}
+
+	b, err := ioutil.ReadAll(resp.Body)
+
+	assert.Contains(t, string(b), "{\"id\":1,\"name\":\"Schelb\",\"responsibility\":\"barbeiro\"}", "The two JSON should be the same.")
+
+	if err != nil {
+		t.Fatalf("Expected no error, got %v", err)
+	}
+
+	if resp.StatusCode != 200 {
+		t.Fatalf("Expected status code 200, got %v", resp.StatusCode)
+	}
+}
+
+func TestDeleteEmployee(t *testing.T) {
+
+	// Create client
+	client := &http.Client{}
+
+	testServer := httptest.NewServer(routers.CreateRouters())
+	defer testServer.Close()
+
+	body, _ := json.Marshal(model.Employee{ID: 999, Name: "employee_test_delete", Responsibility: "barbeiro"})
+
+	resp, err := http.Post(fmt.Sprintf("%s/v1/employee", testServer.URL), "application/json", bytes.NewBuffer(body))
+	if err != nil {
+		t.Fatalf("Expected no error in create employee_test_delete, got %v", err)
+	}
+	if resp.StatusCode != 200 {
+		t.Fatalf("Expected status code 200 in create employee_test_delete, got %v", resp.StatusCode)
+	}
+
+	req, err := http.NewRequest("DELETE", fmt.Sprintf("%s/v1/employee/999", testServer.URL), nil)
+
+	// Fetch Request
+	respDel, err := client.Do(req)
+	if err != nil {
+		t.Fatalf("Expected no error, got %v", err)
+		return
+	}
+
+	if respDel.StatusCode != 204 {
+		t.Fatalf("Expected status code 204, got %v", resp.StatusCode)
+	}
+
 }
