@@ -28,7 +28,6 @@ func TestMain(m *testing.M) {
 	retCode := m.Run()
 	tearDown(identifier)
 	os.Exit(retCode)
-
 }
 
 func setEnvs() {
@@ -113,7 +112,7 @@ func TestGetEmployeeByID(t *testing.T) {
 
 	b, err := ioutil.ReadAll(resp.Body)
 
-	assert.Equal(t, "{\"id\":1,\"name\":\"Schelb\",\"responsibility\":\"barbeiro\"}", string(b), "The two JSON should be the same.")
+	assert.Equal(t, "{\"id\":1,\"name\":\"Schelb\",\"responsibility\":\"barbeiro\",\"daysWork\":[{\"day\":\"Sunday\"},{\"day\":\"Monday\"},{\"day\":\"Tuesday\"},{\"day\":\"Saturday\"}]}", string(b), "The two JSON should be the same.")
 
 	if err != nil {
 		t.Fatalf("Expected no error, got %v", err)
@@ -136,7 +135,7 @@ func TestGetAllEmployee(t *testing.T) {
 
 	b, err := ioutil.ReadAll(resp.Body)
 
-	assert.Contains(t, string(b), "{\"id\":1,\"name\":\"Schelb\",\"responsibility\":\"barbeiro\"}", "The two JSON should be the same.")
+	assert.Contains(t, string(b), "{\"id\":1,\"name\":\"Schelb\",\"responsibility\":\"barbeiro\",\"daysWork\":[{\"day\":\"Sunday\"},{\"day\":\"Monday\"},{\"day\":\"Tuesday\"},{\"day\":\"Saturday\"}]}", "The two JSON should be the same.")
 
 	if err != nil {
 		t.Fatalf("Expected no error, got %v", err)
@@ -157,6 +156,7 @@ func TestDeleteEmployee(t *testing.T) {
 
 	body, _ := json.Marshal(model.Employee{ID: 999, Name: "employee_test_delete", Responsibility: "barbeiro"})
 
+	//Add employee to delete after
 	resp, err := http.Post(fmt.Sprintf("%s/v1/employee", testServer.URL), "application/json", bytes.NewBuffer(body))
 	if err != nil {
 		t.Fatalf("Expected no error in create employee_test_delete, got %v", err)
@@ -165,9 +165,9 @@ func TestDeleteEmployee(t *testing.T) {
 		t.Fatalf("Expected status code 200 in create employee_test_delete, got %v", resp.StatusCode)
 	}
 
+	//Deleting
 	req, err := http.NewRequest("DELETE", fmt.Sprintf("%s/v1/employee/999", testServer.URL), nil)
 
-	// Fetch Request
 	respDel, err := client.Do(req)
 	if err != nil {
 		t.Fatalf("Expected no error, got %v", err)
@@ -177,5 +177,4 @@ func TestDeleteEmployee(t *testing.T) {
 	if respDel.StatusCode != 204 {
 		t.Fatalf("Expected status code 204, got %v", resp.StatusCode)
 	}
-
 }

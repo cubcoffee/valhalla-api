@@ -38,18 +38,19 @@ func AddEmployee(emp model.Employee, db *gorm.DB) model.Employee {
 func GetEmployeeById(id uint64, db *gorm.DB) model.Employee {
 
 	emp := model.Employee{}
-	db.Where("id = " + fmt.Sprint(id)).First(&emp)
+	db.Preload("DaysWork").Where("id = " + fmt.Sprint(id)).First(&emp)
 	return emp
 }
 
 func DeleteEmployeeById(id uint64, db *gorm.DB) {
 	emp := model.Employee{ID: id}
+	db.Where("user_id = " + fmt.Sprint(id)).Delete(model.DaysWork{})
 	db.Delete(&emp)
 }
 
 func GetAllEmployee(db *gorm.DB) []model.Employee {
 
 	emps := []model.Employee{}
-	db.Find(&emps)
+	db.Preload("DaysWork").Find(&emps)
 	return emps
 }
