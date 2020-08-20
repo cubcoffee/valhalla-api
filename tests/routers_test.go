@@ -178,3 +178,49 @@ func TestDeleteEmployee(t *testing.T) {
 		t.Fatalf("Expected status code 204, got %v", resp.StatusCode)
 	}
 }
+
+func TestUpgradeEmployee(t *testing.T) {
+	// Create client
+	client := &http.Client{}
+
+	testServer := httptest.NewServer(routers.CreateRouters())
+	defer testServer.Close()
+
+	body, _ := json.Marshal(model.Employee{ID: 998, Name: "employee_test_update", Responsibility: "barbeiro"})
+
+	//Add employee to update after
+	resp, err := http.Post(fmt.Sprintf("%s/v1/employee", testServer.URL), "application/json", bytes.NewBuffer(body))
+	if err != nil {
+		t.Fatalf("Expected no error in create employee_test_update, got %v", err)
+	}
+	if resp.StatusCode != 200 {
+		t.Fatalf("Expected status code 200 in create employee_test_update, got %v", resp.StatusCode)
+	}
+
+	body, _ = json.Marshal(model.Employee{ID: 998, Name: "employee_test_update", Responsibility: "atendente"})
+
+	//Update
+	req, err := http.NewRequest("PUT", fmt.Sprintf("%s/v1/employee/", testServer.URL), bytes.NewBuffer(body))
+
+	respUp, err := client.Do(req)
+	if err != nil {
+		t.Fatalf("Expected no error, got %v", err)
+		return
+	}
+	if respUp.StatusCode != 200 {
+		t.Fatalf("Expected status code 204, got %v", resp.StatusCode)
+	}
+
+	//verify
+	b, err := ioutil.ReadAll(respUp.Body)
+	assert.Contains(t, string(b), "\"id\":998,\"name\":\"employee_test_update\",\"responsibility\":\"atendente\",", "The two JSON should be the same.")
+
+	resp, err = http.Get(fmt.Sprintf("%s/v1/employee/998", testServer.URL))
+	if err != nil {
+		t.Fatalf("Expected no error, got %v", err)
+	}
+
+	b, err = ioutil.ReadAll(resp.Body)
+
+	assert.Equal(t, "{\"id\":998,\"name\":\"employee_test_update\",\"responsibility\":\"atendente\",\"daysWork\":[]}", string(b), "The two JSON should be the same.")
+}

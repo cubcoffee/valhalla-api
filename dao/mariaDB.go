@@ -25,14 +25,11 @@ func InitDb() (*gorm.DB, error) {
 func AddEmployee(emp model.Employee, db *gorm.DB) model.Employee {
 
 	row := new(model.Employee)
-
 	d := db.Create(&emp).Scan(row)
 	if d.Error != nil {
 		log.Print(d.Error)
 	}
-
 	return *row
-
 }
 
 func GetEmployeeById(id uint64, db *gorm.DB) model.Employee {
@@ -46,6 +43,14 @@ func DeleteEmployeeById(id uint64, db *gorm.DB) {
 	emp := model.Employee{ID: id}
 	db.Where("user_id = " + fmt.Sprint(id)).Delete(model.DaysWork{})
 	db.Delete(&emp)
+}
+
+func UpdateEmployee(emp model.Employee, db *gorm.DB) model.Employee {
+
+	db.Where("user_id = " + fmt.Sprint(emp.ID)).Delete(model.DaysWork{})
+	db.Model(&emp).Updates(emp)
+
+	return emp
 }
 
 func GetAllEmployee(db *gorm.DB) []model.Employee {

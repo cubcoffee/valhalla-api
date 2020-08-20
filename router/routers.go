@@ -1,4 +1,4 @@
-package routers
+package router
 
 import (
 	"encoding/json"
@@ -19,9 +19,10 @@ func CreateRouters() *gin.Engine {
 	{
 		v1.GET("/hello", helloHandler)
 		v1.GET("/employees", getAllEmployees)
-		v1.GET("/employee/:id", getEmployeeById)
+		v1.GET("/employee/:id", getEmployeeByID)
 		v1.POST("/employee", addEmployee)
-		v1.DELETE("/employee/:id", deleteEmployeeById)
+		v1.DELETE("/employee/:id", deleteEmployeeByID)
+		v1.PUT("/employee", updateEmployee)
 	}
 
 	return r
@@ -38,15 +39,15 @@ func addEmployee(c *gin.Context) {
 	if err != nil {
 		log.Print(err)
 	}
+	defer db.Close()
 
 	emp := model.Employee{}
 	reqBody, _ := ioutil.ReadAll(c.Request.Body)
 	json.Unmarshal(reqBody, &emp)
 	dao.AddEmployee(emp, db)
-	defer db.Close()
 }
 
-func getEmployeeById(c *gin.Context) {
+func getEmployeeByID(c *gin.Context) {
 
 	i := c.Param("id")
 	id, err := strconv.ParseUint(i, 10, 64)
@@ -58,13 +59,12 @@ func getEmployeeById(c *gin.Context) {
 	if err != nil {
 		log.Print(err)
 	}
+	defer db.Close()
 	emp := dao.GetEmployeeById(id, db)
 	c.JSON(http.StatusOK, emp)
-
-	db.Close()
 }
 
-func deleteEmployeeById(c *gin.Context) {
+func deleteEmployeeByID(c *gin.Context) {
 	i := c.Param("id")
 	id, err := strconv.ParseUint(i, 10, 64)
 	if err != nil {
@@ -83,6 +83,25 @@ func deleteEmployeeById(c *gin.Context) {
 
 }
 
+func updateEmployee(c *gin.Context) {
+	db, err := dao.InitDb()
+	if err != nil {
+		log.Print(err)
+	}
+	defer db.Close()
+
+	emp := model.Employee{}
+	reqBody, _ := ioutil.ReadAll(c.Request.Body)
+	json.Unmarshal(reqBody, &emp)
+
+	if emp.ID != 0 {
+		row := dao.UpdateEmployee(emp, db)
+		c.JSON(http.StatusOK, row)
+	} else {
+		c.JSON(http.StatusBadRequest, model.ErrorM{Cod: "000", Description: "The id must be entered in the request body"})
+	}
+}
+
 func getAllEmployees(c *gin.Context) {
 	db, err := dao.InitDb()
 	if err != nil {
@@ -92,5 +111,4 @@ func getAllEmployees(c *gin.Context) {
 	c.JSON(http.StatusOK, emps)
 
 	db.Close()
-
 }
