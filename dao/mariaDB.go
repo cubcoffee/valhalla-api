@@ -42,6 +42,14 @@ func GetEmployeeById(id int, db *gorm.DB) model.Employee {
 	return emp
 }
 
+//GetClientByID return a persisted Client from Database
+func GetClientByID(id int, db *gorm.DB) model.Client {
+
+	client := model.Client{}
+	db.Where("id = " + fmt.Sprint(id)).First(&client)
+	return client
+}
+
 func DeleteEmployeeById(id int, db *gorm.DB) {
 	emp := model.Employee{ID: id}
 	db.Delete(&emp)

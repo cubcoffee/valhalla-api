@@ -22,6 +22,9 @@ func CreateRouters() *gin.Engine {
 		v1.GET("/employee/:id", getEmployeeById)
 		v1.POST("/employee", addEmployee)
 		v1.DELETE("/employee/:id", deleteEmployeeById)
+
+		v1.GET("/client/:id", getClientById)
+
 	}
 
 	return r
@@ -31,6 +34,25 @@ func helloHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Hello, Valhalla",
 	})
+}
+
+func getClientById(c *gin.Context) {
+
+	i := c.Param("id")
+	id, err := strconv.Atoi(i)
+	if err != nil {
+		log.Print(err)
+	}
+
+	db, err := dao.InitDb()
+	if err != nil {
+		log.Print(err)
+	}
+	emp := dao.GetClientByID(id, db)
+	c.JSON(http.StatusOK, emp)
+
+	db.Close()
+
 }
 
 func addEmployee(c *gin.Context) {
