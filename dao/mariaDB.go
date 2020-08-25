@@ -42,14 +42,6 @@ func GetEmployeeById(id int, db *gorm.DB) model.Employee {
 	return emp
 }
 
-//GetClientByID return a persisted Client from Database
-func GetClientByID(id int, db *gorm.DB) model.Client {
-
-	client := model.Client{}
-	db.Where("id = " + fmt.Sprint(id)).First(&client)
-	return client
-}
-
 func DeleteEmployeeById(id int, db *gorm.DB) {
 	emp := model.Employee{ID: id}
 	db.Delete(&emp)
@@ -60,4 +52,48 @@ func GetAllEmployee(db *gorm.DB) []model.Employee {
 	emps := []model.Employee{}
 	db.Find(&emps)
 	return emps
+}
+
+/*GetAllClients retrieve all clients*/
+func GetAllClients(db *gorm.DB) []model.Client {
+
+	clients := []model.Client{}
+	db.Find(&clients)
+	return clients
+}
+
+/*GetClientByID return a persisted Client from Database*/
+func GetClientByID(id int, db *gorm.DB) model.Client {
+
+	client := model.Client{}
+	db.Where("id = " + fmt.Sprint(id)).First(&client)
+	return client
+}
+
+/*DeleteClientById remove a client by ID*/
+func DeleteClientById(id int, db *gorm.DB) {
+	client := model.Client{ID: id}
+	db.Delete(&client)
+}
+
+/*AddClient in database*/
+func AddClient(cient model.Client, db *gorm.DB) model.Client {
+
+	row := new(model.Client)
+
+	d := db.Create(&cient).Scan(row)
+	if d.Error != nil {
+		log.Print(d.Error)
+	}
+
+	return *row
+
+}
+
+/*GetClientByEmail get client by email*/
+func GetClientByEmail(email string, db *gorm.DB) model.Client {
+
+	cli := model.Client{}
+	db.Where("email = " + email).First(&cli)
+	return cli
 }

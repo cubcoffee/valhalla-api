@@ -6,7 +6,7 @@ CREATE TABLE valhaladb.employees (
     PRIMARY KEY (id)
 );
 
-CREATE TABLE valhaladb.client (
+CREATE TABLE valhaladb.clients (
     id MEDIUMINT NOT NULL AUTO_INCREMENT,
     name varchar(40),
     email varchar(40),
@@ -21,3 +21,10 @@ SET names utf8;
 INSERT INTO valhaladb.employees(id, name) VALUES (1, "Schelb");
 INSERT INTO valhaladb.employees(id, name) VALUES (2, "Tchelão");
 INSERT INTO valhaladb.employees(id, name) VALUES (3, "Dudu");
+
+
+
+SET names utf8;
+INSERT INTO valhaladb.clients(id, name, email, phone) VALUES (1, "Jaspion", "jaspion@daileon.com", "55");
+INSERT INTO valhaladb.clients(id, name, email, phone) VALUES (2, "Jiraya", "jiraya@sucessordetodacuri.com", "66");
+INSERT INTO valhaladb.clients(id, name, email, phone) VALUES (3, "Jiban", "jiban@policaldeaco.com", "77");

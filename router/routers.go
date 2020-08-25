@@ -2,6 +2,7 @@ package routers
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -23,7 +24,9 @@ func CreateRouters() *gin.Engine {
 		v1.POST("/employee", addEmployee)
 		v1.DELETE("/employee/:id", deleteEmployeeById)
 
+		v1.GET("/clients", getAllClients)
 		v1.GET("/client/:id", getClientById)
+		v1.POST("/client", addClient)
 
 	}
 
@@ -34,25 +37,6 @@ func helloHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Hello, Valhalla",
 	})
-}
-
-func getClientById(c *gin.Context) {
-
-	i := c.Param("id")
-	id, err := strconv.Atoi(i)
-	if err != nil {
-		log.Print(err)
-	}
-
-	db, err := dao.InitDb()
-	if err != nil {
-		log.Print(err)
-	}
-	emp := dao.GetClientByID(id, db)
-	c.JSON(http.StatusOK, emp)
-
-	db.Close()
-
 }
 
 func addEmployee(c *gin.Context) {
@@ -115,4 +99,88 @@ func getAllEmployees(c *gin.Context) {
 
 	db.Close()
 
+}
+
+func getClientById(c *gin.Context) {
+
+	i := c.Param("id")
+	id, err := strconv.Atoi(i)
+	if err != nil {
+		e := model.Error{
+			Message: fmt.Sprintf("The ID must be numeric, but was %v", i),
+		}
+		c.JSON(http.StatusBadRequest, e)
+		return
+	}
+
+	db, err := dao.InitDb()
+	if err != nil {
+		log.Print(err)
+	}
+	emp := dao.GetClientByID(id, db)
+
+	fmt.Println("empID", emp.ID)
+	if emp.ID == 0 {
+		err := model.Error{
+			Message: fmt.Sprintf("No resource found with this ID: %v", id),
+		}
+		c.JSON(http.StatusNotFound, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, emp)
+
+	defer db.Close()
+
+}
+
+func getAllClients(c *gin.Context) {
+	db, err := dao.InitDb()
+	if err != nil {
+		log.Print(err)
+	}
+	clients := dao.GetAllClients(db)
+	c.JSON(http.StatusOK, clients)
+
+	db.Close()
+}
+
+func addClient(c *gin.Context) {
+	db, err := dao.InitDb()
+	if err != nil {
+		log.Print(err)
+	}
+
+	client := model.Client{}
+	reqBody, _ := ioutil.ReadAll(c.Request.Body)
+	json.Unmarshal(reqBody, &client)
+
+	var isInvalid bool
+	if client.Email == "" {
+		isInvalid = true
+	}
+	if client.Name == "" {
+		isInvalid = true
+	}
+
+	if isInvalid {
+		err := model.Error{
+			Message: "The Client is invalid",
+		}
+		c.JSON(http.StatusBadRequest, err)
+		return
+	}
+
+	cli := dao.GetClientByEmail(client.Email, db)
+	if cli.ID != 0 {
+		err := model.Error{
+			Message: fmt.Sprintf("The email %v already exists", client.Email),
+		}
+		c.JSON(http.StatusBadRequest, err)
+		return
+
+	}
+
+	dao.AddClient(client, db)
+	defer db.Close()
 }
