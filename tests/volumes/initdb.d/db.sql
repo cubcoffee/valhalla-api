@@ -28,3 +28,4 @@ SET names utf8;
 INSERT INTO valhaladb.clients(id, name, email, phone) VALUES (1, "Jaspion", "jaspion@daileon.com", "55");
 INSERT INTO valhaladb.clients(id, name, email, phone) VALUES (2, "Jiraya", "jiraya@sucessordetodacuri.com", "66");
 INSERT INTO valhaladb.clients(id, name, email, phone) VALUES (3, "Jiban", "jiban@policaldeaco.com", "77");
+INSERT INTO valhaladb.clients(id, name, email, phone) VALUES (4, "Email Duplicado Júnior", "duplicado@ilegal.com", "77");

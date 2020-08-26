@@ -119,7 +119,6 @@ func getClientById(c *gin.Context) {
 	}
 	emp := dao.GetClientByID(id, db)
 
-	fmt.Println("empID", emp.ID)
 	if emp.ID == 0 {
 		err := model.Error{
 			Message: fmt.Sprintf("No resource found with this ID: %v", id),

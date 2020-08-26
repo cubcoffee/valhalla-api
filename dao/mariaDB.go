@@ -94,6 +94,6 @@ func AddClient(cient model.Client, db *gorm.DB) model.Client {
 func GetClientByEmail(email string, db *gorm.DB) model.Client {
 
 	cli := model.Client{}
-	db.Where("email = " + email).First(&cli)
+	db.Where("email = ?", email).First(&cli)
 	return cli
 }

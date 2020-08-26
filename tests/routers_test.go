@@ -214,7 +214,7 @@ func TestGetAllClients(t *testing.T) {
 	}
 
 	b, err := ioutil.ReadAll(resp.Body)
-	assert.Equal(t, "[{\"id\":1,\"name\":\"Jaspion\",\"email\":\"jaspion@daileon.com\",\"phone\":\"55\"},{\"id\":2,\"name\":\"Jiraya\",\"email\":\"jiraya@sucessordetodacuri.com\",\"phone\":\"66\"},{\"id\":3,\"name\":\"Jiban\",\"email\":\"jiban@policaldeaco.com\",\"phone\":\"77\"}]", string(b), "The two words should be the same.")
+	assert.Equal(t, "[{\"id\":1,\"name\":\"Jaspion\",\"email\":\"jaspion@daileon.com\",\"phone\":\"55\"},{\"id\":2,\"name\":\"Jiraya\",\"email\":\"jiraya@sucessordetodacuri.com\",\"phone\":\"66\"},{\"id\":3,\"name\":\"Jiban\",\"email\":\"jiban@policaldeaco.com\",\"phone\":\"77\"},{\"id\":4,\"name\":\"Email Duplicado Júnior\",\"email\":\"duplicado@ilegal.com\",\"phone\":\"77\"}]", string(b), "The two words should be the same.")
 
 	if err != nil {
 		t.Fatalf("Excpected no error, got %v", err)
@@ -252,7 +252,7 @@ func TestPostBadClientWithNoName(t *testing.T) {
 	testServer := httptest.NewServer(routers.CreateRouters())
 	defer testServer.Close()
 
-	body, _ := json.Marshal(model.Client{ID: 99, Name: "", Email: "duds@23cm.com", Phone: "55"})
+	body, _ := json.Marshal(model.Client{ID: 100, Name: "", Email: "duds@23cm.com", Phone: "55"})
 
 	resp, err := http.Post(fmt.Sprintf("%s/v1/client", testServer.URL), "application/json", bytes.NewBuffer(body))
 	b, err := ioutil.ReadAll(resp.Body)
@@ -264,7 +264,7 @@ func TestPostBadClientWithNoName(t *testing.T) {
 		t.Fatalf("Expected status code 400, got %v", resp.StatusCode)
 	}
 
-	resp, err = http.Get(fmt.Sprintf("%s/v1/client/99", testServer.URL))
+	resp, err = http.Get(fmt.Sprintf("%s/v1/client/100", testServer.URL))
 	assert.Equal(t, resp.StatusCode, 404, "The two words should be the same.")
 
 }
@@ -274,7 +274,7 @@ func TestPostBadClientWithNoEmail(t *testing.T) {
 	testServer := httptest.NewServer(routers.CreateRouters())
 	defer testServer.Close()
 
-	body, _ := json.Marshal(model.Client{ID: 99, Name: "Duduzão the bala", Email: "", Phone: "55"})
+	body, _ := json.Marshal(model.Client{ID: 101, Name: "Duduzão the bala", Email: "", Phone: "55"})
 
 	resp, err := http.Post(fmt.Sprintf("%s/v1/client", testServer.URL), "application/json", bytes.NewBuffer(body))
 	b, err := ioutil.ReadAll(resp.Body)
@@ -286,34 +286,21 @@ func TestPostBadClientWithNoEmail(t *testing.T) {
 		t.Fatalf("Expected status code 400, got %v", resp.StatusCode)
 	}
 
-	resp, err = http.Get(fmt.Sprintf("%s/v1/client/99", testServer.URL))
+	resp, err = http.Get(fmt.Sprintf("%s/v1/client/101", testServer.URL))
 	assert.Equal(t, resp.StatusCode, 404, "The two words should be the same.")
 
 }
 
 func TestPostBadClientWithSameEmail(t *testing.T) {
 
-	cli := model.Client{
-		Name:  "Duduziones",
-		Email: "schelb@tchelo.com",
-		Phone: "55",
-	}
-
-	db, err := dao.InitDb()
-	if err != nil {
-		log.Print(err)
-	}
-	dao.AddClient(cli, db)
-	defer db.Close()
-
 	testServer := httptest.NewServer(routers.CreateRouters())
 	defer testServer.Close()
 
-	body, _ := json.Marshal(model.Client{ID: 99, Name: "Duduzão the bala", Email: "schelb@tchelo.com", Phone: "55"})
+	body, _ := json.Marshal(model.Client{ID: 5, Name: "Duduzão the bala tentando", Email: "duplicado@ilegal.com", Phone: "55"})
 
 	resp, err := http.Post(fmt.Sprintf("%s/v1/client", testServer.URL), "application/json", bytes.NewBuffer(body))
 	b, err := ioutil.ReadAll(resp.Body)
-	assert.Equal(t, "{\"message\":\"The email schelb@tchelo.com already exists\"}", string(b), "The two words should be the same.")
+	assert.Equal(t, "{\"message\":\"The email duplicado@ilegal.com already exists\"}", string(b), "The two words should be the same.")
 	if err != nil {
 		t.Fatalf("Expected no error, got %v", err)
 	}
@@ -321,7 +308,8 @@ func TestPostBadClientWithSameEmail(t *testing.T) {
 		t.Fatalf("Expected status code 400, got %v", resp.StatusCode)
 	}
 
-	resp, err = http.Get(fmt.Sprintf("%s/v1/client/99", testServer.URL))
-	assert.Equal(t, resp.StatusCode, 404, "The two words should be the same.")
+	resp, err = http.Get(fmt.Sprintf("%s/v1/client/5", testServer.URL))
+	b, err = ioutil.ReadAll(resp.Body)
+	assert.Equal(t, 404, resp.StatusCode, "The two words should be the same.")
 
 }
