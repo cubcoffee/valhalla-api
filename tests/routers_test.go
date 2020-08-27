@@ -313,3 +313,109 @@ func TestPostBadClientWithSameEmail(t *testing.T) {
 	assert.Equal(t, 404, resp.StatusCode, "The two words should be the same.")
 
 }
+
+func TestDeleteClient(t *testing.T) {
+
+	db, err := dao.InitDb()
+	if err != nil {
+		t.Fatal("Error in initializing DB")
+	}
+
+	clientInserted := model.Client{
+		ID:    999,
+		Name:  "You'll die mother fu....",
+		Email: "bad@bad.com",
+		Phone: "55",
+	}
+
+	dao.AddClient(clientInserted, db)
+
+	testServer := httptest.NewServer(routers.CreateRouters())
+	defer testServer.Close()
+
+	req, _ := http.NewRequest("DELETE", fmt.Sprintf("%s/v1/client/999", testServer.URL), nil)
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		t.Fatalf("Expected no error, got %v", err)
+	}
+
+	assert.Equal(t, 204, resp.StatusCode, "The two words should be the same.")
+
+	resp, err = http.Get(fmt.Sprintf("%s/v1/client/999", testServer.URL))
+
+	assert.Equal(t, 404, resp.StatusCode, "The two words should be the same.")
+
+	if err != nil {
+		t.Fatalf("Excpected no error, got %v", err)
+	}
+
+	dao.DeleteClientById(999, db)
+}
+
+func TestDeleteClientWithBadID(t *testing.T) {
+
+	testServer := httptest.NewServer(routers.CreateRouters())
+	defer testServer.Close()
+
+	req, _ := http.NewRequest("DELETE", fmt.Sprintf("%s/v1/client/aaa", testServer.URL), nil)
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		t.Fatalf("Expected no error, got %v", err)
+	}
+
+	b, err := ioutil.ReadAll(resp.Body)
+	assert.Equal(t, "{\"message\":\"The ID must be numeric, but was aaa\"}", string(b), "The two words should be the same.")
+
+	if err != nil {
+		t.Fatalf("Excpected no error, got %v", err)
+	}
+
+	if resp.StatusCode != 400 {
+		t.Fatalf("Expected status code 400, got %v", resp.StatusCode)
+	}
+
+}
+
+func TestUpdateClient(t *testing.T) {
+
+	db, err := dao.InitDb()
+	if err != nil {
+		t.Fatal("Error in initializing DB")
+	}
+
+	clientInserted := model.Client{
+		ID:    999,
+		Name:  "You'll die mother fu....",
+		Email: "bad@bad.com",
+		Phone: "55",
+	}
+
+	dao.AddClient(clientInserted, db)
+
+	clientUpdated := model.Client{
+		Name:  "I'm new baby!",
+		Email: "new@new.com",
+		Phone: "66",
+	}
+	body, _ := json.Marshal(clientUpdated)
+	testServer := httptest.NewServer(routers.CreateRouters())
+	defer testServer.Close()
+
+	req, _ := http.NewRequest("PUT", fmt.Sprintf("%s/v1/client/999", testServer.URL), bytes.NewBuffer(body))
+	client := &http.Client{}
+	resp, err := client.Do(req)
+
+	assert.Equal(t, 200, resp.StatusCode, "The two words should be the same.")
+
+	resp, err = http.Get(fmt.Sprintf("%s/v1/client/999", testServer.URL))
+
+	if err != nil {
+		t.Fatalf("Expected no error, got %v", err)
+	}
+
+	b, err := ioutil.ReadAll(resp.Body)
+	assert.Equal(t, "{\"id\":999,\"name\":\"I'm new baby!\",\"email\":\"new@new.com\",\"phone\":\"66\"}", string(b), "The two words should be the same.")
+
+}

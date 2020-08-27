@@ -27,6 +27,8 @@ func CreateRouters() *gin.Engine {
 		v1.GET("/clients", getAllClients)
 		v1.GET("/client/:id", getClientById)
 		v1.POST("/client", addClient)
+		v1.DELETE("/client/:id", deleteClientById)
+		v1.PUT("/client/:id", updateClient)
 
 	}
 
@@ -182,4 +184,75 @@ func addClient(c *gin.Context) {
 
 	dao.AddClient(client, db)
 	defer db.Close()
+}
+
+func deleteClientById(c *gin.Context) {
+	i := c.Param("id")
+	id, err := strconv.Atoi(i)
+	if err != nil {
+		e := model.Error{
+			Message: fmt.Sprintf("The ID must be numeric, but was %v", i),
+		}
+		c.JSON(http.StatusBadRequest, e)
+		return
+	}
+
+	db, err := dao.InitDb()
+	if err != nil {
+		log.Print(err)
+	}
+
+	defer db.Close()
+
+	dao.DeleteClientById(id, db)
+	c.Status(http.StatusNoContent)
+
+}
+
+func updateClient(c *gin.Context) {
+
+	i := c.Param("id")
+	id, err := strconv.Atoi(i)
+	if err != nil {
+		e := model.Error{
+			Message: fmt.Sprintf("The ID must be numeric, but was %v", i),
+		}
+		c.JSON(http.StatusBadRequest, e)
+		return
+	}
+
+	db, err := dao.InitDb()
+	client := model.Client{}
+	reqBody, _ := ioutil.ReadAll(c.Request.Body)
+	json.Unmarshal(reqBody, &client)
+
+	var isInvalid bool
+	if client.Email == "" {
+		isInvalid = true
+	}
+	if client.Name == "" {
+		isInvalid = true
+	}
+
+	if isInvalid {
+		err := model.Error{
+			Message: "The Client is invalid",
+		}
+		c.JSON(http.StatusBadRequest, err)
+		return
+	}
+
+	cli := dao.GetClientByEmail(client.Email, db)
+	if cli.ID != 0 {
+		err := model.Error{
+			Message: fmt.Sprintf("The email %v already exists", client.Email),
+		}
+		c.JSON(http.StatusBadRequest, err)
+		return
+
+	}
+	dao.UpdateClient(id, client, db)
+
+	defer db.Close()
+
 }

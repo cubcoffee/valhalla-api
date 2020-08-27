@@ -97,3 +97,17 @@ func GetClientByEmail(email string, db *gorm.DB) model.Client {
 	db.Where("email = ?", email).First(&cli)
 	return cli
 }
+
+/*UpdateClient update client by email*/
+func UpdateClient(id int, client model.Client, db *gorm.DB) {
+
+	clientUpdated := model.Client{}
+	db.Where("id = " + fmt.Sprint(id)).First(&clientUpdated)
+
+	clientUpdated.Email = client.Email
+	clientUpdated.Name = client.Name
+	clientUpdated.Phone = client.Phone
+
+	db.Save(&clientUpdated)
+
+}
