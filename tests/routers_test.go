@@ -32,11 +32,7 @@ func TestMain(m *testing.M) {
 
 func setEnvs() {
 	os.Setenv("DB_TYPE", "mysql")
-	os.Setenv("DB_HOST", "localhost")
-	os.Setenv("DB_PORT", "3306")
-	os.Setenv("DB_USER", "root")
-	os.Setenv("DB_NAME", "valhaladb")
-	os.Setenv("DB_PASSWORD", "root")
+	os.Setenv("DB_CONNEC_STRING", "root:root@(localhost:3306)/valhaladb?charset=utf8&parseTime=True&loc=Local")
 }
 
 func tearDown(identifier string) {
@@ -112,7 +108,7 @@ func TestGetEmployeeByID(t *testing.T) {
 
 	b, err := ioutil.ReadAll(resp.Body)
 
-	assert.Equal(t, "{\"id\":1,\"name\":\"Schelb\",\"responsibility\":\"barbeiro\",\"daysWork\":[{\"day\":\"Sunday\"},{\"day\":\"Monday\"},{\"day\":\"Tuesday\"},{\"day\":\"Saturday\"}]}", string(b), "The two JSON should be the same.")
+	assert.Equal(t, "{\"id\":1,\"name\":\"Schelb\",\"responsibility\":\"barbeiro\",\"hour_init\":\"08:00:00\",\"hour_end\":\"18:00:00\",\"daysWork\":[{\"day_index\":\"1\"},{\"day_index\":\"1\"},{\"day_index\":\"2\"},{\"day_index\":\"7\"}]}", string(b), "The two JSON should be the same.")
 
 	if err != nil {
 		t.Fatalf("Expected no error, got %v", err)
@@ -135,7 +131,7 @@ func TestGetAllEmployee(t *testing.T) {
 
 	b, err := ioutil.ReadAll(resp.Body)
 
-	assert.Contains(t, string(b), "{\"id\":1,\"name\":\"Schelb\",\"responsibility\":\"barbeiro\",\"daysWork\":[{\"day\":\"Sunday\"},{\"day\":\"Monday\"},{\"day\":\"Tuesday\"},{\"day\":\"Saturday\"}]}", "The two JSON should be the same.")
+	assert.Contains(t, string(b), "{\"id\":1,\"name\":\"Schelb\",\"responsibility\":\"barbeiro\",\"hour_init\":\"08:00:00\",\"hour_end\":\"18:00:00\",\"daysWork\":[{\"day_index\":\"1\"},{\"day_index\":\"1\"},{\"day_index\":\"2\"},{\"day_index\":\"7\"}]}", "The two JSON should be the same.")
 
 	if err != nil {
 		t.Fatalf("Expected no error, got %v", err)
@@ -186,7 +182,12 @@ func TestUpgradeEmployee(t *testing.T) {
 	testServer := httptest.NewServer(routers.CreateRouters())
 	defer testServer.Close()
 
-	body, _ := json.Marshal(model.Employee{ID: 998, Name: "employee_test_update", Responsibility: "barbeiro"})
+	body, _ := json.Marshal(model.Employee{
+		ID:             998,
+		Name:           "employee_test_update",
+		Responsibility: "barbeiro",
+		HourInit:       "08:00:00",
+		HourEnd:        "18:00:00"})
 
 	//Add employee to update after
 	resp, err := http.Post(fmt.Sprintf("%s/v1/employee", testServer.URL), "application/json", bytes.NewBuffer(body))
@@ -197,7 +198,12 @@ func TestUpgradeEmployee(t *testing.T) {
 		t.Fatalf("Expected status code 200 in create employee_test_update, got %v", resp.StatusCode)
 	}
 
-	body, _ = json.Marshal(model.Employee{ID: 998, Name: "employee_test_update", Responsibility: "atendente"})
+	body, _ = json.Marshal(model.Employee{
+		ID:             998,
+		Name:           "employee_test_update",
+		Responsibility: "atendente",
+		HourInit:       "08:00:00",
+		HourEnd:        "18:00:00"})
 
 	//Update
 	req, err := http.NewRequest("PUT", fmt.Sprintf("%s/v1/employee/", testServer.URL), bytes.NewBuffer(body))
@@ -222,5 +228,5 @@ func TestUpgradeEmployee(t *testing.T) {
 
 	b, err = ioutil.ReadAll(resp.Body)
 
-	assert.Equal(t, "{\"id\":998,\"name\":\"employee_test_update\",\"responsibility\":\"atendente\",\"daysWork\":[]}", string(b), "The two JSON should be the same.")
+	assert.Equal(t, "{\"id\":998,\"name\":\"employee_test_update\",\"responsibility\":\"atendente\",\"hour_init\":\"08:00:00\",\"hour_end\":\"18:00:00\",\"daysWork\":[]}", string(b), "The two JSON should be the same.")
 }

@@ -4,12 +4,14 @@ CREATE TABLE valhaladb.employees (
     id SMALLINT NOT NULL AUTO_INCREMENT,
     name varchar(40),
     responsibility varchar(20),
+    hour_init TIME,
+    hour_end TIME,
     PRIMARY KEY (id)
 );
 
 CREATE TABLE valhaladb.days_works (
     id SMALLINT NOT NULL AUTO_INCREMENT,
-    day varchar(9),
+    day_index SMALLINT,
     user_id SMALLINT NOT NULL,
     PRIMARY KEY (id),
     CONSTRAINT fk_employee_day
@@ -17,17 +19,18 @@ CREATE TABLE valhaladb.days_works (
 );
 
 SET names utf8;
-INSERT INTO valhaladb.employees(id, name, responsibility)
+INSERT INTO valhaladb.employees(id, name, responsibility, hour_init, hour_end)
 VALUES 
-    (1, "Schelb", "barbeiro"),
-    (2, "Tchelão", "barbeiro"),
-    (3, "Dudu", "design");
+    (1, "Schelb", "barbeiro","08:00:00", "18:00:00"),
+    (2, "Tchelão", "barbeiro","08:00:00", "18:00:00"),
+    (3, "Dudu", "design","08:00:00", "18:00:00");
 
-INSERT INTO valhaladb.days_works(day,user_id)
+--  ODBC standard (1 = Sunday, 2 = Monday, ..., 7 = Saturday)
+INSERT INTO valhaladb.days_works(day_index,user_id)
 VALUES
-    ("Sunday", 1),
-    ("Monday",1),
-    ("Tuesday",1),
-    ("Wednesday",2),
-    ("Thursday",3),
-    ("Saturday",1);
+    (1,1),
+    (1,1),
+    (2,1),
+    (2,2),
+    (4,3),
+    (7,1);

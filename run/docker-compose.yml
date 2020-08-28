@@ -12,11 +12,7 @@ services:
       - valhala-lan
     environment:
       - DB_TYPE=mysql
-      - DB_HOST=mariadb
-      - DB_PORT=3306
-      - DB_USER=root
-      - DB_NAME=valhaladb
-      - DB_PASSWORD=root
+      - DB_CONNEC_STRING=root:root@(mariadb:3306)/valhaladb?charset=utf8&parseTime=True&loc=Local
 
   mariadb:
     image: mariadb
