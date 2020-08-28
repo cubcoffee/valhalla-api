@@ -13,7 +13,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/cubcoffee/valhalla-api/model"
+	"github.com/cubcoffee/valhalla-api/dao"
 	routers "github.com/cubcoffee/valhalla-api/router"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
@@ -85,7 +85,7 @@ func TestPostEmployee(t *testing.T) {
 	testServer := httptest.NewServer(routers.CreateRouters())
 	defer testServer.Close()
 
-	body, _ := json.Marshal(model.Employee{ID: 99, Name: "employee_test1"})
+	body, _ := json.Marshal(dao.Employee{ID: 99, Name: "employee_test1"})
 
 	resp, err := http.Post(fmt.Sprintf("%s/v1/employee", testServer.URL), "application/json", bytes.NewBuffer(body))
 	if err != nil {
@@ -150,7 +150,7 @@ func TestDeleteEmployee(t *testing.T) {
 	testServer := httptest.NewServer(routers.CreateRouters())
 	defer testServer.Close()
 
-	body, _ := json.Marshal(model.Employee{ID: 999, Name: "employee_test_delete", Responsibility: "barbeiro"})
+	body, _ := json.Marshal(dao.Employee{ID: 999, Name: "employee_test_delete", Responsibility: "barbeiro"})
 
 	//Add employee to delete after
 	resp, err := http.Post(fmt.Sprintf("%s/v1/employee", testServer.URL), "application/json", bytes.NewBuffer(body))
@@ -182,7 +182,7 @@ func TestUpgradeEmployee(t *testing.T) {
 	testServer := httptest.NewServer(routers.CreateRouters())
 	defer testServer.Close()
 
-	body, _ := json.Marshal(model.Employee{
+	body, _ := json.Marshal(dao.Employee{
 		ID:             998,
 		Name:           "employee_test_update",
 		Responsibility: "barbeiro",
@@ -198,7 +198,7 @@ func TestUpgradeEmployee(t *testing.T) {
 		t.Fatalf("Expected status code 200 in create employee_test_update, got %v", resp.StatusCode)
 	}
 
-	body, _ = json.Marshal(model.Employee{
+	body, _ = json.Marshal(dao.Employee{
 		ID:             998,
 		Name:           "employee_test_update",
 		Responsibility: "atendente",

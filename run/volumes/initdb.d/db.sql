@@ -6,6 +6,8 @@ CREATE TABLE valhaladb.employees (
     responsibility varchar(20),
     hour_init TIME,
     hour_end TIME,
+    credential_id INT,
+    FOREIGN KEY (credential_id) REFERENCES valhaladb.credentials(id),
     PRIMARY KEY (id)
 );
 
@@ -23,6 +25,7 @@ INSERT INTO valhaladb.employees(id, name, responsibility, hour_init, hour_end)
 VALUES 
     (1, "Schelb", "barbeiro","08:00:00", "18:00:00"),
     (2, "Tchelão", "barbeiro","08:00:00", "18:00:00"),
+    (4, "Tchelão", "barbeiro","08:00:00", "18:00:00"),
     (3, "Dudu", "design","08:00:00", "18:00:00");
 
 --  ODBC standard (1 = Sunday, 2 = Monday, ..., 7 = Saturday)

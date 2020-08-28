@@ -2,6 +2,7 @@ package router
 
 import (
 	"encoding/json"
+	"github.com/cubcoffee/valhalla-api/credentials"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -38,12 +39,24 @@ func addEmployee(c *gin.Context) {
 	db, err := dao.InitDb()
 	if err != nil {
 		log.Print(err)
+		c.AbortWithStatus(http.StatusInternalServerError)
 	}
 	defer db.Close()
-
-	emp := model.Employee{}
+	emp := dao.Employee{}
 	reqBody, _ := ioutil.ReadAll(c.Request.Body)
-	json.Unmarshal(reqBody, &emp)
+	err = json.Unmarshal(reqBody, &emp)
+	if err != nil {
+		c.AbortWithStatus(http.StatusBadRequest)
+	}
+	credential := dao.Credential{}
+	// Fixed password until we don't implement the sent by email password service
+	credential.Hash, credential.Salt, err = credentials.GenerateHash("12345678")
+	credential, err = dao.AddCredential(credential)
+	if err != nil {
+		c.AbortWithStatus(http.StatusUnprocessableEntity)
+	}
+	emp.Credential = credential
+	emp.CredentialID = credential.ID
 	dao.AddEmployee(emp, db)
 }
 
@@ -90,7 +103,7 @@ func updateEmployee(c *gin.Context) {
 	}
 	defer db.Close()
 
-	emp := model.Employee{}
+	emp := dao.Employee{}
 	reqBody, _ := ioutil.ReadAll(c.Request.Body)
 	json.Unmarshal(reqBody, &emp)
 

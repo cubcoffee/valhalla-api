@@ -7,12 +7,6 @@ import (
 	"fmt"
 )
 
-type Credential struct {
-	ID   int64
-	Hash string
-	Salt string
-}
-
 func GenerateHash(password string) (string, string, error) {
 	salt := make([]byte, 16)
 	_, err := rand.Read(salt)
