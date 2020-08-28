@@ -5,7 +5,6 @@ import (
 	"log"
 	"os"
 
-	"github.com/cubcoffee/valhalla-api/model"
 	"github.com/jinzhu/gorm"
 
 	_ "github.com/jinzhu/gorm/dialects/mysql"

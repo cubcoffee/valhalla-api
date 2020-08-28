@@ -91,7 +91,7 @@ func TestPostEmployee(t *testing.T) {
 	testServer := httptest.NewServer(routers.CreateRouters())
 	defer testServer.Close()
 
-	body, _ := json.Marshal(model.Employee{ID: 99, Name: "employee_test1"})
+	body, _ := json.Marshal(dao.Employee{ID: 99, Name: "employee_test1"})
 
 	resp, err := http.Post(fmt.Sprintf("%s/v1/employee", testServer.URL), "application/json", bytes.NewBuffer(body))
 	if err != nil {
@@ -164,6 +164,7 @@ func TestGetClient(t *testing.T) {
 	testServer := httptest.NewServer(routers.CreateRouters())
 	defer testServer.Close()
 
+<<<<<<< HEAD
 	resp, err := http.Get(fmt.Sprintf("%s/v1/client/1", testServer.URL))
 	if err != nil {
 		t.Fatalf("Expected no error, got %v", err)
@@ -172,6 +173,9 @@ func TestGetClient(t *testing.T) {
 	b, err := ioutil.ReadAll(resp.Body)
 
 	assert.Equal(t, "{\"id\":1,\"name\":\"Jaspion\",\"email\":\"jaspion@daileon.com\",\"phone\":\"55\"}", string(b), "The two words should be the same.")
+=======
+	body, _ := json.Marshal(dao.Employee{ID: 999, Name: "employee_test_delete", Responsibility: "barbeiro"})
+>>>>>>> Integration between credentials and employee.
 
 	if err != nil {
 		t.Fatalf("Excpected no error, got %v", err)
@@ -224,7 +228,16 @@ func TestGetNotFoundClient(t *testing.T) {
 	testServer := httptest.NewServer(routers.CreateRouters())
 	defer testServer.Close()
 
+<<<<<<< HEAD
 	resp, err := http.Get(fmt.Sprintf("%s/v1/client/5", testServer.URL))
+=======
+	body, _ := json.Marshal(dao.Employee{
+		ID:             998,
+		Name:           "employee_test_update",
+		Responsibility: "barbeiro",
+		HourInit:       "08:00:00",
+		HourEnd:        "18:00:00"})
+>>>>>>> Integration between credentials and employee.
 
 	if err != nil {
 		t.Fatalf("Expected no error, got %v", err)
@@ -351,7 +364,16 @@ func TestPostBadClientWithNoName(t *testing.T) {
 	resp, err = http.Get(fmt.Sprintf("%s/v1/client/100", testServer.URL))
 	assert.Equal(t, resp.StatusCode, 404, "The two words should be the same.")
 
+<<<<<<< HEAD
 }
+=======
+	body, _ = json.Marshal(dao.Employee{
+		ID:             998,
+		Name:           "employee_test_update",
+		Responsibility: "atendente",
+		HourInit:       "08:00:00",
+		HourEnd:        "18:00:00"})
+>>>>>>> Integration between credentials and employee.
 
 func TestPostBadClientWithNoEmail(t *testing.T) {
 

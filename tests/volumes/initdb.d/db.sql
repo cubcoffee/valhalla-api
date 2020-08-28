@@ -1,11 +1,20 @@
 ALTER DATABASE valhaladb CHARACTER SET utf8 COLLATE utf8_general_ci;
 
+CREATE TABLE valhaladb.credentials (
+    id INT AUTO_INCREMENT,
+    hash TEXT NOT NULL,
+    salt TEXT NOT NULL,
+    PRIMARY KEY (id)
+);
+
 CREATE TABLE valhaladb.employees (
     id SMALLINT NOT NULL AUTO_INCREMENT,
     name varchar(40),
     responsibility varchar(20),
     hour_init TIME,
     hour_end TIME,
+    credential_id INT,
+    FOREIGN KEY (credential_id) REFERENCES valhaladb.credentials(id),
     PRIMARY KEY (id)
 );
 
