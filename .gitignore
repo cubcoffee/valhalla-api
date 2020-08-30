@@ -3,7 +3,7 @@
 # Edit at https://www.toptal.com/developers/gitignore?templates=go
 
 #volume_local_paths
-run/volumes
+run/volumes/mysql
 
 ### Go ###
 # Binaries for programs and plugins
@@ -27,3 +27,4 @@ run/volumes
 /Godeps/
 
 # End of https://www.toptal.com/developers/gitignore/api/go
+cover.html

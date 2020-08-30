@@ -13,44 +13,50 @@ import (
 
 func InitDb() (*gorm.DB, error) {
 
-	db, err := gorm.Open(os.Getenv("DB_TYPE"),
-		os.Getenv("DB_USER")+":"+os.Getenv("DB_PASSWORD")+"@("+os.Getenv("DB_HOST")+":"+os.Getenv("DB_PORT")+")/"+os.Getenv("DB_NAME")+"?charset=utf8&parseTime=True&loc=Local")
+	db, err := gorm.Open(os.Getenv("DB_TYPE"), os.Getenv("DB_CONNEC_STRING"))
 
 	if err != nil {
 		return nil, err
 	}
+
 	return db, nil
 }
 
 func AddEmployee(emp model.Employee, db *gorm.DB) model.Employee {
 
 	row := new(model.Employee)
-
 	d := db.Create(&emp).Scan(row)
 	if d.Error != nil {
 		log.Print(d.Error)
 	}
-
 	return *row
-
 }
 
-func GetEmployeeById(id int, db *gorm.DB) model.Employee {
+func GetEmployeeById(id uint64, db *gorm.DB) model.Employee {
 
 	emp := model.Employee{}
-	db.Where("id = " + fmt.Sprint(id)).First(&emp)
+	db.Preload("DaysWork").Where("id = " + fmt.Sprint(id)).First(&emp)
 	return emp
 }
 
-func DeleteEmployeeById(id int, db *gorm.DB) {
+func DeleteEmployeeById(id uint64, db *gorm.DB) {
 	emp := model.Employee{ID: id}
+	db.Where("user_id = " + fmt.Sprint(id)).Delete(model.DaysWork{})
 	db.Delete(&emp)
+}
+
+func UpdateEmployee(emp model.Employee, db *gorm.DB) model.Employee {
+
+	db.Where("user_id = " + fmt.Sprint(emp.ID)).Delete(model.DaysWork{})
+	db.Model(&emp).Updates(emp)
+
+	return emp
 }
 
 func GetAllEmployee(db *gorm.DB) []model.Employee {
 
 	emps := []model.Employee{}
-	db.Find(&emps)
+	db.Preload("DaysWork").Find(&emps)
 	return emps
 }
 
@@ -62,8 +68,8 @@ func GetAllClients(db *gorm.DB) []model.Client {
 	return clients
 }
 
-/*GetClientByID return a persisted Client from Database*/
-func GetClientByID(id int, db *gorm.DB) model.Client {
+/*GetClientById return a persisted Client from Database*/
+func GetClientById(id int, db *gorm.DB) model.Client {
 
 	client := model.Client{}
 	db.Where("id = " + fmt.Sprint(id)).First(&client)
@@ -74,6 +80,13 @@ func GetClientByID(id int, db *gorm.DB) model.Client {
 func DeleteClientById(id int, db *gorm.DB) {
 	client := model.Client{ID: id}
 	db.Delete(&client)
+}
+
+/*DeleteAllClients remove a client by ID*/
+func DeleteAllClients(db *gorm.DB) {
+	client := model.Client{}
+	db.Where(&client).Delete(model.Client{})
+
 }
 
 /*AddClient in database*/

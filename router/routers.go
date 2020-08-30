@@ -1,4 +1,4 @@
-package routers
+package router
 
 import (
 	"encoding/json"
@@ -19,10 +19,12 @@ func CreateRouters() *gin.Engine {
 	v1 := r.Group("/v1")
 	{
 		v1.GET("/hello", helloHandler)
+
 		v1.GET("/employees", getAllEmployees)
-		v1.GET("/employee/:id", getEmployeeById)
+		v1.GET("/employee/:id", getEmployeeByID)
 		v1.POST("/employee", addEmployee)
 		v1.DELETE("/employee/:id", deleteEmployeeById)
+		v1.PUT("/employee", updateEmployee)
 
 		v1.GET("/clients", getAllClients)
 		v1.GET("/client/:id", getClientById)
@@ -46,18 +48,18 @@ func addEmployee(c *gin.Context) {
 	if err != nil {
 		log.Print(err)
 	}
+	defer db.Close()
 
 	emp := model.Employee{}
 	reqBody, _ := ioutil.ReadAll(c.Request.Body)
 	json.Unmarshal(reqBody, &emp)
 	dao.AddEmployee(emp, db)
-	defer db.Close()
 }
 
-func getEmployeeById(c *gin.Context) {
+func getEmployeeByID(c *gin.Context) {
 
 	i := c.Param("id")
-	id, err := strconv.Atoi(i)
+	id, err := strconv.ParseUint(i, 10, 64)
 	if err != nil {
 		log.Print(err)
 	}
@@ -66,15 +68,14 @@ func getEmployeeById(c *gin.Context) {
 	if err != nil {
 		log.Print(err)
 	}
+	defer db.Close()
 	emp := dao.GetEmployeeById(id, db)
 	c.JSON(http.StatusOK, emp)
-
-	db.Close()
 }
 
 func deleteEmployeeById(c *gin.Context) {
 	i := c.Param("id")
-	id, err := strconv.Atoi(i)
+	id, err := strconv.ParseUint(i, 10, 64)
 	if err != nil {
 		log.Print(err)
 	}
@@ -91,6 +92,25 @@ func deleteEmployeeById(c *gin.Context) {
 
 }
 
+func updateEmployee(c *gin.Context) {
+	db, err := dao.InitDb()
+	if err != nil {
+		log.Print(err)
+	}
+	defer db.Close()
+
+	emp := model.Employee{}
+	reqBody, _ := ioutil.ReadAll(c.Request.Body)
+	json.Unmarshal(reqBody, &emp)
+
+	if emp.ID != 0 {
+		row := dao.UpdateEmployee(emp, db)
+		c.JSON(http.StatusOK, row)
+	} else {
+		c.JSON(http.StatusBadRequest, model.ErrorM{Cod: "000", Description: "The id must be entered in the request body"})
+	}
+}
+
 func getAllEmployees(c *gin.Context) {
 	db, err := dao.InitDb()
 	if err != nil {
@@ -100,7 +120,6 @@ func getAllEmployees(c *gin.Context) {
 	c.JSON(http.StatusOK, emps)
 
 	db.Close()
-
 }
 
 func getClientById(c *gin.Context) {
@@ -117,9 +136,11 @@ func getClientById(c *gin.Context) {
 
 	db, err := dao.InitDb()
 	if err != nil {
+		fmt.Println("ERROR", err)
+
 		log.Print(err)
 	}
-	emp := dao.GetClientByID(id, db)
+	emp := dao.GetClientById(id, db)
 
 	if emp.ID == 0 {
 		err := model.Error{

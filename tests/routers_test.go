@@ -26,19 +26,16 @@ func TestMain(m *testing.M) {
 	identifier := initCompose()
 	time.Sleep(40 * time.Second) //tosco.. eu sei :(
 	setEnvs()
+
 	retCode := m.Run()
+
 	tearDown(identifier)
 	os.Exit(retCode)
-
 }
 
 func setEnvs() {
 	os.Setenv("DB_TYPE", "mysql")
-	os.Setenv("DB_HOST", "localhost")
-	os.Setenv("DB_PORT", "3306")
-	os.Setenv("DB_USER", "root")
-	os.Setenv("DB_NAME", "valhaladb")
-	os.Setenv("DB_PASSWORD", "root")
+	os.Setenv("DB_CONNEC_STRING", "root:root@(localhost:3306)/valhaladb?charset=utf8&parseTime=True&loc=Local")
 }
 
 func tearDown(identifier string) {
@@ -64,11 +61,14 @@ func initCompose() string {
 		WithCommand([]string{"up", "-d"}).
 		Invoke()
 
+	fmt.Println("EXEC ERROR", execError)
+
 	err := execError.Error
 	if err != nil {
 		log.Printf("Could not run compose file: %v - %v", composeFilePaths, err)
 	}
 
+	fmt.Println("identificer", identifier)
 	return identifier
 }
 
@@ -102,7 +102,7 @@ func TestPostEmployee(t *testing.T) {
 	}
 }
 
-func TestGetEmployee(t *testing.T) {
+func TestGetEmployeeByID(t *testing.T) {
 
 	testServer := httptest.NewServer(routers.CreateRouters())
 	defer testServer.Close()
@@ -114,7 +114,30 @@ func TestGetEmployee(t *testing.T) {
 
 	b, err := ioutil.ReadAll(resp.Body)
 
-	assert.Equal(t, "{\"id\":1,\"name\":\"Schelb\"}", string(b), "The two words should be the same.")
+	assert.Equal(t, "{\"id\":1,\"name\":\"Schelb\",\"responsibility\":\"barbeiro\",\"hour_init\":\"08:00:00\",\"hour_end\":\"18:00:00\",\"daysWork\":[{\"day_index\":\"1\"},{\"day_index\":\"1\"},{\"day_index\":\"2\"},{\"day_index\":\"7\"}]}", string(b), "The two JSON should be the same.")
+
+	if err != nil {
+		t.Fatalf("Expected no error, got %v", err)
+	}
+
+	if resp.StatusCode != 200 {
+		t.Fatalf("Expected status code 200, got %v", resp.StatusCode)
+	}
+}
+
+func TestGetAllEmployee(t *testing.T) {
+
+	testServer := httptest.NewServer(routers.CreateRouters())
+	defer testServer.Close()
+
+	resp, err := http.Get(fmt.Sprintf("%s/v1/employees/", testServer.URL))
+	if err != nil {
+		t.Fatalf("Expected no error, got %v", err)
+	}
+
+	b, err := ioutil.ReadAll(resp.Body)
+
+	assert.Contains(t, string(b), "{\"id\":1,\"name\":\"Schelb\",\"responsibility\":\"barbeiro\",\"hour_init\":\"08:00:00\",\"hour_end\":\"18:00:00\",\"daysWork\":[{\"day_index\":\"1\"},{\"day_index\":\"1\"},{\"day_index\":\"2\"},{\"day_index\":\"7\"}]}", "The two JSON should be the same.")
 
 	if err != nil {
 		t.Fatalf("Expected no error, got %v", err)
@@ -127,6 +150,17 @@ func TestGetEmployee(t *testing.T) {
 
 func TestGetClient(t *testing.T) {
 
+	//Setup
+	db, err := dao.InitDb()
+	dao.DeleteAllClients(db)
+	dao.AddClient(model.Client{
+
+		ID:    1,
+		Name:  "Jaspion",
+		Email: "jaspion@daileon.com",
+		Phone: "55",
+	}, db)
+
 	testServer := httptest.NewServer(routers.CreateRouters())
 	defer testServer.Close()
 
@@ -136,6 +170,7 @@ func TestGetClient(t *testing.T) {
 	}
 
 	b, err := ioutil.ReadAll(resp.Body)
+
 	assert.Equal(t, "{\"id\":1,\"name\":\"Jaspion\",\"email\":\"jaspion@daileon.com\",\"phone\":\"55\"}", string(b), "The two words should be the same.")
 
 	if err != nil {
@@ -145,6 +180,11 @@ func TestGetClient(t *testing.T) {
 	if resp.StatusCode != 200 {
 		t.Fatalf("Expected status code 200, got %v", resp.StatusCode)
 	}
+
+	//Clear
+	dao.DeleteClientById(1, db)
+
+	defer db.Close()
 
 }
 
@@ -205,6 +245,36 @@ func TestGetNotFoundClient(t *testing.T) {
 
 func TestGetAllClients(t *testing.T) {
 
+	//Setup
+	db, err := dao.InitDb()
+	dao.AddClient(model.Client{
+		ID:    1,
+		Name:  "Jaspion",
+		Email: "jaspion@daileon.com",
+		Phone: "55",
+	}, db)
+
+	dao.AddClient(model.Client{
+		ID:    2,
+		Name:  "Jiraya",
+		Email: "jiraya@sucessordetodacuri.com",
+		Phone: "66",
+	}, db)
+
+	dao.AddClient(model.Client{
+		ID:    3,
+		Name:  "Jiban",
+		Email: "jiban@policaldeaco.com",
+		Phone: "77",
+	}, db)
+
+	dao.AddClient(model.Client{
+		ID:    4,
+		Name:  "Email Duplicado Júnior",
+		Email: "duplicado@ilegal.com",
+		Phone: "88",
+	}, db)
+
 	testServer := httptest.NewServer(routers.CreateRouters())
 	defer testServer.Close()
 
@@ -214,7 +284,7 @@ func TestGetAllClients(t *testing.T) {
 	}
 
 	b, err := ioutil.ReadAll(resp.Body)
-	assert.Equal(t, "[{\"id\":1,\"name\":\"Jaspion\",\"email\":\"jaspion@daileon.com\",\"phone\":\"55\"},{\"id\":2,\"name\":\"Jiraya\",\"email\":\"jiraya@sucessordetodacuri.com\",\"phone\":\"66\"},{\"id\":3,\"name\":\"Jiban\",\"email\":\"jiban@policaldeaco.com\",\"phone\":\"77\"},{\"id\":4,\"name\":\"Email Duplicado Júnior\",\"email\":\"duplicado@ilegal.com\",\"phone\":\"77\"}]", string(b), "The two words should be the same.")
+	assert.Equal(t, "[{\"id\":1,\"name\":\"Jaspion\",\"email\":\"jaspion@daileon.com\",\"phone\":\"55\"},{\"id\":2,\"name\":\"Jiraya\",\"email\":\"jiraya@sucessordetodacuri.com\",\"phone\":\"66\"},{\"id\":3,\"name\":\"Jiban\",\"email\":\"jiban@policaldeaco.com\",\"phone\":\"77\"},{\"id\":4,\"name\":\"Email Duplicado Júnior\",\"email\":\"duplicado@ilegal.com\",\"phone\":\"88\"}]", string(b), "The two words should be the same.")
 
 	if err != nil {
 		t.Fatalf("Excpected no error, got %v", err)
@@ -224,9 +294,19 @@ func TestGetAllClients(t *testing.T) {
 		t.Fatalf("Expected status code 200, got %v", resp.StatusCode)
 	}
 
+	dao.DeleteClientById(1, db)
+	dao.DeleteClientById(2, db)
+	dao.DeleteClientById(3, db)
+	dao.DeleteClientById(4, db)
+
+	defer db.Close()
+
 }
 
 func TestPostClient(t *testing.T) {
+
+	db, err := dao.InitDb()
+	dao.DeleteClientById(99, db)
 
 	testServer := httptest.NewServer(routers.CreateRouters())
 	defer testServer.Close()
@@ -244,6 +324,10 @@ func TestPostClient(t *testing.T) {
 	resp, err = http.Get(fmt.Sprintf("%s/v1/client/99", testServer.URL))
 	b, err := ioutil.ReadAll(resp.Body)
 	assert.Equal(t, "{\"id\":99,\"name\":\"employee_test1\",\"email\":\"duds@23cm.com\",\"phone\":\"55\"}", string(b), "The two words should be the same.")
+
+	dao.DeleteClientById(99, db)
+
+	defer db.Close()
 
 }
 
@@ -293,6 +377,15 @@ func TestPostBadClientWithNoEmail(t *testing.T) {
 
 func TestPostBadClientWithSameEmail(t *testing.T) {
 
+	//Setup
+	db, err := dao.InitDb()
+	dao.AddClient(model.Client{
+		ID:    6,
+		Name:  "Duduzão  já existente and the bala",
+		Email: "duplicado@ilegal.com",
+		Phone: "66",
+	}, db)
+
 	testServer := httptest.NewServer(routers.CreateRouters())
 	defer testServer.Close()
 
@@ -311,6 +404,10 @@ func TestPostBadClientWithSameEmail(t *testing.T) {
 	resp, err = http.Get(fmt.Sprintf("%s/v1/client/5", testServer.URL))
 	b, err = ioutil.ReadAll(resp.Body)
 	assert.Equal(t, 404, resp.StatusCode, "The two words should be the same.")
+
+	dao.DeleteClientById(6, db)
+
+	defer db.Close()
 
 }
 
@@ -350,7 +447,7 @@ func TestDeleteClient(t *testing.T) {
 		t.Fatalf("Excpected no error, got %v", err)
 	}
 
-	dao.DeleteClientById(999, db)
+	defer db.Close()
 }
 
 func TestDeleteClientWithBadID(t *testing.T) {
@@ -417,5 +514,8 @@ func TestUpdateClient(t *testing.T) {
 
 	b, err := ioutil.ReadAll(resp.Body)
 	assert.Equal(t, "{\"id\":999,\"name\":\"I'm new baby!\",\"email\":\"new@new.com\",\"phone\":\"66\"}", string(b), "The two words should be the same.")
+
+	dao.DeleteClientById(999, db)
+	defer db.Close()
 
 }
