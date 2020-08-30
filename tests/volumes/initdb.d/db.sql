@@ -9,6 +9,15 @@ CREATE TABLE valhaladb.employees (
     PRIMARY KEY (id)
 );
 
+CREATE TABLE valhaladb.clients (
+    id MEDIUMINT NOT NULL AUTO_INCREMENT,
+    name varchar(40),
+    email varchar(40),
+    phone varchar(10),
+    PRIMARY KEY (id)
+);
+
+
 CREATE TABLE valhaladb.days_works (
     id SMALLINT NOT NULL AUTO_INCREMENT,
     day_index SMALLINT,
@@ -17,6 +26,8 @@ CREATE TABLE valhaladb.days_works (
     CONSTRAINT fk_employee_day
     FOREIGN KEY (user_id) REFERENCES valhaladb.employees(id)
 );
+
+
 
 SET names utf8;
 INSERT INTO valhaladb.employees(id, name, responsibility, hour_init, hour_end)
