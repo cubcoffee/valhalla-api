@@ -133,16 +133,12 @@ func getClientById(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, e)
 		return
 	}
-
-	db, err := dao.InitDb()
-	if err != nil {
-		fmt.Println("ERROR", err)
-
-		log.Print(err)
+	client := model.Client{
+		ID: id,
 	}
-	emp := dao.GetClientById(id, db)
+	client = client.GetByID()
 
-	if emp.ID == 0 {
+	if client.ID == 0 {
 		err := model.Error{
 			Message: fmt.Sprintf("No resource found with this ID: %v", id),
 		}
@@ -150,29 +146,21 @@ func getClientById(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, emp)
+	c.JSON(http.StatusOK, client)
 
-	defer db.Close()
+	defer client.CloseDB()
 
 }
 
 func getAllClients(c *gin.Context) {
-	db, err := dao.InitDb()
-	if err != nil {
-		log.Print(err)
-	}
-	clients := dao.GetAllClients(db)
+	client := model.Client{}
+	clients := client.GetAll()
 	c.JSON(http.StatusOK, clients)
 
-	db.Close()
+	defer client.CloseDB()
 }
 
 func addClient(c *gin.Context) {
-	db, err := dao.InitDb()
-	if err != nil {
-		log.Print(err)
-	}
-
 	client := model.Client{}
 	reqBody, _ := ioutil.ReadAll(c.Request.Body)
 	json.Unmarshal(reqBody, &client)
@@ -193,7 +181,7 @@ func addClient(c *gin.Context) {
 		return
 	}
 
-	cli := dao.GetClientByEmail(client.Email, db)
+	cli := client.GetByEmail()
 	if cli.ID != 0 {
 		err := model.Error{
 			Message: fmt.Sprintf("The email %v already exists", client.Email),
@@ -203,8 +191,8 @@ func addClient(c *gin.Context) {
 
 	}
 
-	dao.AddClient(client, db)
-	defer db.Close()
+	client.Add()
+	defer client.CloseDB()
 }
 
 func deleteClientById(c *gin.Context) {
@@ -218,15 +206,12 @@ func deleteClientById(c *gin.Context) {
 		return
 	}
 
-	db, err := dao.InitDb()
-	if err != nil {
-		log.Print(err)
+	client := model.Client{
+		ID: id,
 	}
-
-	defer db.Close()
-
-	dao.DeleteClientById(id, db)
+	client.Delete()
 	c.Status(http.StatusNoContent)
+	defer client.CloseDB()
 
 }
 
@@ -242,7 +227,6 @@ func updateClient(c *gin.Context) {
 		return
 	}
 
-	db, err := dao.InitDb()
 	client := model.Client{}
 	reqBody, _ := ioutil.ReadAll(c.Request.Body)
 	json.Unmarshal(reqBody, &client)
@@ -262,8 +246,8 @@ func updateClient(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, err)
 		return
 	}
-
-	cli := dao.GetClientByEmail(client.Email, db)
+	client.SetID(id)
+	cli := client.GetByEmail()
 	if cli.ID != 0 {
 		err := model.Error{
 			Message: fmt.Sprintf("The email %v already exists", client.Email),
@@ -272,8 +256,8 @@ func updateClient(c *gin.Context) {
 		return
 
 	}
-	dao.UpdateClient(id, client, db)
+	client.UpdateClient(client)
 
-	defer db.Close()
+	defer client.CloseDB()
 
 }

@@ -11,8 +11,14 @@ import (
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 )
 
+var db *gorm.DB
+
 func InitDb() (*gorm.DB, error) {
 
+	if db != nil {
+		return db, nil
+
+	}
 	db, err := gorm.Open(os.Getenv("DB_TYPE"), os.Getenv("DB_CONNEC_STRING"))
 
 	if err != nil {
@@ -58,69 +64,4 @@ func GetAllEmployee(db *gorm.DB) []model.Employee {
 	emps := []model.Employee{}
 	db.Preload("DaysWork").Find(&emps)
 	return emps
-}
-
-/*GetAllClients retrieve all clients*/
-func GetAllClients(db *gorm.DB) []model.Client {
-
-	clients := []model.Client{}
-	db.Find(&clients)
-	return clients
-}
-
-/*GetClientById return a persisted Client from Database*/
-func GetClientById(id int, db *gorm.DB) model.Client {
-
-	client := model.Client{}
-	db.Where("id = " + fmt.Sprint(id)).First(&client)
-	return client
-}
-
-/*DeleteClientById remove a client by ID*/
-func DeleteClientById(id int, db *gorm.DB) {
-	client := model.Client{ID: id}
-	db.Delete(&client)
-}
-
-/*DeleteAllClients remove a client by ID*/
-func DeleteAllClients(db *gorm.DB) {
-	client := model.Client{}
-	db.Where(&client).Delete(model.Client{})
-
-}
-
-/*AddClient in database*/
-func AddClient(cient model.Client, db *gorm.DB) model.Client {
-
-	row := new(model.Client)
-
-	d := db.Create(&cient).Scan(row)
-	if d.Error != nil {
-		log.Print(d.Error)
-	}
-
-	return *row
-
-}
-
-/*GetClientByEmail get client by email*/
-func GetClientByEmail(email string, db *gorm.DB) model.Client {
-
-	cli := model.Client{}
-	db.Where("email = ?", email).First(&cli)
-	return cli
-}
-
-/*UpdateClient update client by email*/
-func UpdateClient(id int, client model.Client, db *gorm.DB) {
-
-	clientUpdated := model.Client{}
-	db.Where("id = " + fmt.Sprint(id)).First(&clientUpdated)
-
-	clientUpdated.Email = client.Email
-	clientUpdated.Name = client.Name
-	clientUpdated.Phone = client.Phone
-
-	db.Save(&clientUpdated)
-
 }

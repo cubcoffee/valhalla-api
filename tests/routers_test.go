@@ -13,7 +13,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/cubcoffee/valhalla-api/dao"
 	"github.com/cubcoffee/valhalla-api/model"
 	routers "github.com/cubcoffee/valhalla-api/router"
 	"github.com/google/uuid"
@@ -68,7 +67,6 @@ func initCompose() string {
 		log.Printf("Could not run compose file: %v - %v", composeFilePaths, err)
 	}
 
-	fmt.Println("identificer", identifier)
 	return identifier
 }
 
@@ -151,15 +149,14 @@ func TestGetAllEmployee(t *testing.T) {
 func TestGetClient(t *testing.T) {
 
 	//Setup
-	db, err := dao.InitDb()
-	dao.DeleteAllClients(db)
-	dao.AddClient(model.Client{
-
+	client := model.Client{
 		ID:    1,
 		Name:  "Jaspion",
 		Email: "jaspion@daileon.com",
 		Phone: "55",
-	}, db)
+	}
+	client.DeleteAllClients()
+	client.Add()
 
 	testServer := httptest.NewServer(routers.CreateRouters())
 	defer testServer.Close()
@@ -182,9 +179,9 @@ func TestGetClient(t *testing.T) {
 	}
 
 	//Clear
-	dao.DeleteClientById(1, db)
+	client.Delete()
 
-	defer db.Close()
+	defer client.CloseDB()
 
 }
 
@@ -214,12 +211,11 @@ func TestGetClientWithBadID(t *testing.T) {
 
 func TestGetNotFoundClient(t *testing.T) {
 
-	db, err := dao.InitDb()
-	if err != nil {
-		log.Print(err)
+	client := model.Client{
+		ID: 5,
 	}
-	dao.DeleteClientById(5, db)
-	defer db.Close()
+
+	client.Delete()
 
 	testServer := httptest.NewServer(routers.CreateRouters())
 	defer testServer.Close()
@@ -240,40 +236,44 @@ func TestGetNotFoundClient(t *testing.T) {
 	if resp.StatusCode != 404 {
 		t.Fatalf("Expected status code 404, got %v", resp.StatusCode)
 	}
+	defer client.CloseDB()
 
 }
 
 func TestGetAllClients(t *testing.T) {
 
 	//Setup
-	db, err := dao.InitDb()
-	dao.AddClient(model.Client{
+	client1 := model.Client{
 		ID:    1,
 		Name:  "Jaspion",
 		Email: "jaspion@daileon.com",
 		Phone: "55",
-	}, db)
+	}
+	client1.Add()
 
-	dao.AddClient(model.Client{
+	client2 := model.Client{
 		ID:    2,
 		Name:  "Jiraya",
 		Email: "jiraya@sucessordetodacuri.com",
 		Phone: "66",
-	}, db)
+	}
+	client2.Add()
 
-	dao.AddClient(model.Client{
+	client3 := model.Client{
 		ID:    3,
 		Name:  "Jiban",
 		Email: "jiban@policaldeaco.com",
 		Phone: "77",
-	}, db)
+	}
+	client3.Add()
 
-	dao.AddClient(model.Client{
+	client4 := model.Client{
 		ID:    4,
 		Name:  "Email Duplicado Júnior",
 		Email: "duplicado@ilegal.com",
 		Phone: "88",
-	}, db)
+	}
+	client4.Add()
 
 	testServer := httptest.NewServer(routers.CreateRouters())
 	defer testServer.Close()
@@ -294,19 +294,28 @@ func TestGetAllClients(t *testing.T) {
 		t.Fatalf("Expected status code 200, got %v", resp.StatusCode)
 	}
 
-	dao.DeleteClientById(1, db)
-	dao.DeleteClientById(2, db)
-	dao.DeleteClientById(3, db)
-	dao.DeleteClientById(4, db)
+	client := model.Client{}
+	client.SetID(1)
+	client.Delete()
 
-	defer db.Close()
+	client.SetID(2)
+	client.Delete()
+
+	client.SetID(3)
+	client.Delete()
+
+	client.SetID(4)
+	client.Delete()
+
+	defer client.CloseDB()
 
 }
 
 func TestPostClient(t *testing.T) {
 
-	db, err := dao.InitDb()
-	dao.DeleteClientById(99, db)
+	client := model.Client{}
+	client.SetID(99)
+	client.Delete()
 
 	testServer := httptest.NewServer(routers.CreateRouters())
 	defer testServer.Close()
@@ -325,9 +334,10 @@ func TestPostClient(t *testing.T) {
 	b, err := ioutil.ReadAll(resp.Body)
 	assert.Equal(t, "{\"id\":99,\"name\":\"employee_test1\",\"email\":\"duds@23cm.com\",\"phone\":\"55\"}", string(b), "The two words should be the same.")
 
-	dao.DeleteClientById(99, db)
+	client.SetID(99)
+	client.Delete()
 
-	defer db.Close()
+	defer client.CloseDB()
 
 }
 
@@ -378,13 +388,13 @@ func TestPostBadClientWithNoEmail(t *testing.T) {
 func TestPostBadClientWithSameEmail(t *testing.T) {
 
 	//Setup
-	db, err := dao.InitDb()
-	dao.AddClient(model.Client{
+	client := model.Client{
 		ID:    6,
 		Name:  "Duduzão  já existente and the bala",
 		Email: "duplicado@ilegal.com",
 		Phone: "66",
-	}, db)
+	}
+	client.Add()
 
 	testServer := httptest.NewServer(routers.CreateRouters())
 	defer testServer.Close()
@@ -405,18 +415,14 @@ func TestPostBadClientWithSameEmail(t *testing.T) {
 	b, err = ioutil.ReadAll(resp.Body)
 	assert.Equal(t, 404, resp.StatusCode, "The two words should be the same.")
 
-	dao.DeleteClientById(6, db)
+	client.SetID(6)
+	client.Delete()
 
-	defer db.Close()
+	defer client.CloseDB()
 
 }
 
 func TestDeleteClient(t *testing.T) {
-
-	db, err := dao.InitDb()
-	if err != nil {
-		t.Fatal("Error in initializing DB")
-	}
 
 	clientInserted := model.Client{
 		ID:    999,
@@ -425,7 +431,7 @@ func TestDeleteClient(t *testing.T) {
 		Phone: "55",
 	}
 
-	dao.AddClient(clientInserted, db)
+	clientInserted.Add()
 
 	testServer := httptest.NewServer(routers.CreateRouters())
 	defer testServer.Close()
@@ -447,7 +453,7 @@ func TestDeleteClient(t *testing.T) {
 		t.Fatalf("Excpected no error, got %v", err)
 	}
 
-	defer db.Close()
+	defer clientInserted.CloseDB()
 }
 
 func TestDeleteClientWithBadID(t *testing.T) {
@@ -477,11 +483,6 @@ func TestDeleteClientWithBadID(t *testing.T) {
 
 func TestUpdateClient(t *testing.T) {
 
-	db, err := dao.InitDb()
-	if err != nil {
-		t.Fatal("Error in initializing DB")
-	}
-
 	clientInserted := model.Client{
 		ID:    999,
 		Name:  "You'll die mother fu....",
@@ -489,7 +490,7 @@ func TestUpdateClient(t *testing.T) {
 		Phone: "55",
 	}
 
-	dao.AddClient(clientInserted, db)
+	clientInserted.Add()
 
 	clientUpdated := model.Client{
 		Name:  "I'm new baby!",
@@ -515,7 +516,7 @@ func TestUpdateClient(t *testing.T) {
 	b, err := ioutil.ReadAll(resp.Body)
 	assert.Equal(t, "{\"id\":999,\"name\":\"I'm new baby!\",\"email\":\"new@new.com\",\"phone\":\"66\"}", string(b), "The two words should be the same.")
 
-	dao.DeleteClientById(999, db)
-	defer db.Close()
+	clientInserted.Delete()
+	defer clientInserted.CloseDB()
 
 }
