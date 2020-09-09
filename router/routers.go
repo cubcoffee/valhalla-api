@@ -187,7 +187,7 @@ func addClient(c *gin.Context) {
 		log.Print(err)
 	}
 
-	client := model.Client{}
+	client := dao.Client{}
 	reqBody, _ := ioutil.ReadAll(c.Request.Body)
 	json.Unmarshal(reqBody, &client)
 
@@ -257,7 +257,7 @@ func updateClient(c *gin.Context) {
 	}
 
 	db, err := dao.InitDb()
-	client := model.Client{}
+	client := dao.Client{}
 	reqBody, _ := ioutil.ReadAll(c.Request.Body)
 	json.Unmarshal(reqBody, &client)
 

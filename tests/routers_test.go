@@ -14,7 +14,6 @@ import (
 	"time"
 
 	"github.com/cubcoffee/valhalla-api/dao"
-	"github.com/cubcoffee/valhalla-api/model"
 	routers "github.com/cubcoffee/valhalla-api/router"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
@@ -153,7 +152,7 @@ func TestGetClient(t *testing.T) {
 	//Setup
 	db, err := dao.InitDb()
 	dao.DeleteAllClients(db)
-	dao.AddClient(model.Client{
+	dao.AddClient(dao.Client{
 
 		ID:    1,
 		Name:  "Jaspion",
@@ -164,7 +163,6 @@ func TestGetClient(t *testing.T) {
 	testServer := httptest.NewServer(routers.CreateRouters())
 	defer testServer.Close()
 
-<<<<<<< HEAD
 	resp, err := http.Get(fmt.Sprintf("%s/v1/client/1", testServer.URL))
 	if err != nil {
 		t.Fatalf("Expected no error, got %v", err)
@@ -173,9 +171,6 @@ func TestGetClient(t *testing.T) {
 	b, err := ioutil.ReadAll(resp.Body)
 
 	assert.Equal(t, "{\"id\":1,\"name\":\"Jaspion\",\"email\":\"jaspion@daileon.com\",\"phone\":\"55\"}", string(b), "The two words should be the same.")
-=======
-	body, _ := json.Marshal(dao.Employee{ID: 999, Name: "employee_test_delete", Responsibility: "barbeiro"})
->>>>>>> Integration between credentials and employee.
 
 	if err != nil {
 		t.Fatalf("Excpected no error, got %v", err)
@@ -228,16 +223,7 @@ func TestGetNotFoundClient(t *testing.T) {
 	testServer := httptest.NewServer(routers.CreateRouters())
 	defer testServer.Close()
 
-<<<<<<< HEAD
 	resp, err := http.Get(fmt.Sprintf("%s/v1/client/5", testServer.URL))
-=======
-	body, _ := json.Marshal(dao.Employee{
-		ID:             998,
-		Name:           "employee_test_update",
-		Responsibility: "barbeiro",
-		HourInit:       "08:00:00",
-		HourEnd:        "18:00:00"})
->>>>>>> Integration between credentials and employee.
 
 	if err != nil {
 		t.Fatalf("Expected no error, got %v", err)
@@ -260,28 +246,28 @@ func TestGetAllClients(t *testing.T) {
 
 	//Setup
 	db, err := dao.InitDb()
-	dao.AddClient(model.Client{
+	dao.AddClient(dao.Client{
 		ID:    1,
 		Name:  "Jaspion",
 		Email: "jaspion@daileon.com",
 		Phone: "55",
 	}, db)
 
-	dao.AddClient(model.Client{
+	dao.AddClient(dao.Client{
 		ID:    2,
 		Name:  "Jiraya",
 		Email: "jiraya@sucessordetodacuri.com",
 		Phone: "66",
 	}, db)
 
-	dao.AddClient(model.Client{
+	dao.AddClient(dao.Client{
 		ID:    3,
 		Name:  "Jiban",
 		Email: "jiban@policaldeaco.com",
 		Phone: "77",
 	}, db)
 
-	dao.AddClient(model.Client{
+	dao.AddClient(dao.Client{
 		ID:    4,
 		Name:  "Email Duplicado Júnior",
 		Email: "duplicado@ilegal.com",
@@ -324,7 +310,7 @@ func TestPostClient(t *testing.T) {
 	testServer := httptest.NewServer(routers.CreateRouters())
 	defer testServer.Close()
 
-	body, _ := json.Marshal(model.Client{ID: 99, Name: "employee_test1", Email: "duds@23cm.com", Phone: "55"})
+	body, _ := json.Marshal(dao.Client{ID: 99, Name: "employee_test1", Email: "duds@23cm.com", Phone: "55"})
 
 	resp, err := http.Post(fmt.Sprintf("%s/v1/client", testServer.URL), "application/json", bytes.NewBuffer(body))
 	if err != nil {
@@ -349,7 +335,7 @@ func TestPostBadClientWithNoName(t *testing.T) {
 	testServer := httptest.NewServer(routers.CreateRouters())
 	defer testServer.Close()
 
-	body, _ := json.Marshal(model.Client{ID: 100, Name: "", Email: "duds@23cm.com", Phone: "55"})
+	body, _ := json.Marshal(dao.Client{ID: 100, Name: "", Email: "duds@23cm.com", Phone: "55"})
 
 	resp, err := http.Post(fmt.Sprintf("%s/v1/client", testServer.URL), "application/json", bytes.NewBuffer(body))
 	b, err := ioutil.ReadAll(resp.Body)
@@ -364,23 +350,14 @@ func TestPostBadClientWithNoName(t *testing.T) {
 	resp, err = http.Get(fmt.Sprintf("%s/v1/client/100", testServer.URL))
 	assert.Equal(t, resp.StatusCode, 404, "The two words should be the same.")
 
-<<<<<<< HEAD
 }
-=======
-	body, _ = json.Marshal(dao.Employee{
-		ID:             998,
-		Name:           "employee_test_update",
-		Responsibility: "atendente",
-		HourInit:       "08:00:00",
-		HourEnd:        "18:00:00"})
->>>>>>> Integration between credentials and employee.
 
 func TestPostBadClientWithNoEmail(t *testing.T) {
 
 	testServer := httptest.NewServer(routers.CreateRouters())
 	defer testServer.Close()
 
-	body, _ := json.Marshal(model.Client{ID: 101, Name: "Duduzão the bala", Email: "", Phone: "55"})
+	body, _ := json.Marshal(dao.Client{ID: 101, Name: "Duduzão the bala", Email: "", Phone: "55"})
 
 	resp, err := http.Post(fmt.Sprintf("%s/v1/client", testServer.URL), "application/json", bytes.NewBuffer(body))
 	b, err := ioutil.ReadAll(resp.Body)
@@ -401,7 +378,7 @@ func TestPostBadClientWithSameEmail(t *testing.T) {
 
 	//Setup
 	db, err := dao.InitDb()
-	dao.AddClient(model.Client{
+	dao.AddClient(dao.Client{
 		ID:    6,
 		Name:  "Duduzão  já existente and the bala",
 		Email: "duplicado@ilegal.com",
@@ -411,7 +388,7 @@ func TestPostBadClientWithSameEmail(t *testing.T) {
 	testServer := httptest.NewServer(routers.CreateRouters())
 	defer testServer.Close()
 
-	body, _ := json.Marshal(model.Client{ID: 5, Name: "Duduzão the bala tentando", Email: "duplicado@ilegal.com", Phone: "55"})
+	body, _ := json.Marshal(dao.Client{ID: 5, Name: "Duduzão the bala tentando", Email: "duplicado@ilegal.com", Phone: "55"})
 
 	resp, err := http.Post(fmt.Sprintf("%s/v1/client", testServer.URL), "application/json", bytes.NewBuffer(body))
 	b, err := ioutil.ReadAll(resp.Body)
@@ -440,7 +417,7 @@ func TestDeleteClient(t *testing.T) {
 		t.Fatal("Error in initializing DB")
 	}
 
-	clientInserted := model.Client{
+	clientInserted := dao.Client{
 		ID:    999,
 		Name:  "You'll die mother fu....",
 		Email: "bad@bad.com",
@@ -504,7 +481,7 @@ func TestUpdateClient(t *testing.T) {
 		t.Fatal("Error in initializing DB")
 	}
 
-	clientInserted := model.Client{
+	clientInserted := dao.Client{
 		ID:    999,
 		Name:  "You'll die mother fu....",
 		Email: "bad@bad.com",
@@ -513,7 +490,7 @@ func TestUpdateClient(t *testing.T) {
 
 	dao.AddClient(clientInserted, db)
 
-	clientUpdated := model.Client{
+	clientUpdated := dao.Client{
 		Name:  "I'm new baby!",
 		Email: "new@new.com",
 		Phone: "66",
