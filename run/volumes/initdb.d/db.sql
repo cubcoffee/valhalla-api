@@ -1,11 +1,20 @@
 ALTER DATABASE valhaladb CHARACTER SET utf8 COLLATE utf8_general_ci;
 
+CREATE TABLE valhaladb.credentials (
+    id INT AUTO_INCREMENT,
+    hash TEXT NOT NULL,
+    salt TEXT NOT NULL,
+    PRIMARY KEY (id)
+);
+
 CREATE TABLE valhaladb.employees (
     id SMALLINT NOT NULL AUTO_INCREMENT,
     name varchar(40),
     responsibility varchar(20),
     hour_init TIME,
     hour_end TIME,
+    credential_id INT,
+    FOREIGN KEY (credential_id) REFERENCES valhaladb.credentials(id),
     PRIMARY KEY (id)
 );
 
@@ -23,6 +32,7 @@ INSERT INTO valhaladb.employees(id, name, responsibility, hour_init, hour_end)
 VALUES 
     (1, "Schelb", "barbeiro","08:00:00", "18:00:00"),
     (2, "Tchelão", "barbeiro","08:00:00", "18:00:00"),
+    (4, "Tchelão", "barbeiro","08:00:00", "18:00:00"),
     (3, "Dudu", "design","08:00:00", "18:00:00");
 
 --  ODBC standard (1 = Sunday, 2 = Monday, ..., 7 = Saturday)

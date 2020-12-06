@@ -14,7 +14,6 @@ import (
 	"time"
 
 	"github.com/cubcoffee/valhalla-api/dao"
-	"github.com/cubcoffee/valhalla-api/model"
 	routers "github.com/cubcoffee/valhalla-api/router"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
@@ -91,7 +90,7 @@ func TestPostEmployee(t *testing.T) {
 	testServer := httptest.NewServer(routers.CreateRouters())
 	defer testServer.Close()
 
-	body, _ := json.Marshal(model.Employee{ID: 99, Name: "employee_test1"})
+	body, _ := json.Marshal(dao.Employee{ID: 99, Name: "employee_test1"})
 
 	resp, err := http.Post(fmt.Sprintf("%s/v1/employee", testServer.URL), "application/json", bytes.NewBuffer(body))
 	if err != nil {
@@ -153,7 +152,7 @@ func TestGetClient(t *testing.T) {
 	//Setup
 	db, err := dao.InitDb()
 	dao.DeleteAllClients(db)
-	dao.AddClient(model.Client{
+	dao.AddClient(dao.Client{
 
 		ID:    1,
 		Name:  "Jaspion",
@@ -247,28 +246,28 @@ func TestGetAllClients(t *testing.T) {
 
 	//Setup
 	db, err := dao.InitDb()
-	dao.AddClient(model.Client{
+	dao.AddClient(dao.Client{
 		ID:    1,
 		Name:  "Jaspion",
 		Email: "jaspion@daileon.com",
 		Phone: "55",
 	}, db)
 
-	dao.AddClient(model.Client{
+	dao.AddClient(dao.Client{
 		ID:    2,
 		Name:  "Jiraya",
 		Email: "jiraya@sucessordetodacuri.com",
 		Phone: "66",
 	}, db)
 
-	dao.AddClient(model.Client{
+	dao.AddClient(dao.Client{
 		ID:    3,
 		Name:  "Jiban",
 		Email: "jiban@policaldeaco.com",
 		Phone: "77",
 	}, db)
 
-	dao.AddClient(model.Client{
+	dao.AddClient(dao.Client{
 		ID:    4,
 		Name:  "Email Duplicado Júnior",
 		Email: "duplicado@ilegal.com",
@@ -311,7 +310,7 @@ func TestPostClient(t *testing.T) {
 	testServer := httptest.NewServer(routers.CreateRouters())
 	defer testServer.Close()
 
-	body, _ := json.Marshal(model.Client{ID: 99, Name: "employee_test1", Email: "duds@23cm.com", Phone: "55"})
+	body, _ := json.Marshal(dao.Client{ID: 99, Name: "employee_test1", Email: "duds@23cm.com", Phone: "55"})
 
 	resp, err := http.Post(fmt.Sprintf("%s/v1/client", testServer.URL), "application/json", bytes.NewBuffer(body))
 	if err != nil {
@@ -336,7 +335,7 @@ func TestPostBadClientWithNoName(t *testing.T) {
 	testServer := httptest.NewServer(routers.CreateRouters())
 	defer testServer.Close()
 
-	body, _ := json.Marshal(model.Client{ID: 100, Name: "", Email: "duds@23cm.com", Phone: "55"})
+	body, _ := json.Marshal(dao.Client{ID: 100, Name: "", Email: "duds@23cm.com", Phone: "55"})
 
 	resp, err := http.Post(fmt.Sprintf("%s/v1/client", testServer.URL), "application/json", bytes.NewBuffer(body))
 	b, err := ioutil.ReadAll(resp.Body)
@@ -358,7 +357,7 @@ func TestPostBadClientWithNoEmail(t *testing.T) {
 	testServer := httptest.NewServer(routers.CreateRouters())
 	defer testServer.Close()
 
-	body, _ := json.Marshal(model.Client{ID: 101, Name: "Duduzão the bala", Email: "", Phone: "55"})
+	body, _ := json.Marshal(dao.Client{ID: 101, Name: "Duduzão the bala", Email: "", Phone: "55"})
 
 	resp, err := http.Post(fmt.Sprintf("%s/v1/client", testServer.URL), "application/json", bytes.NewBuffer(body))
 	b, err := ioutil.ReadAll(resp.Body)
@@ -379,7 +378,7 @@ func TestPostBadClientWithSameEmail(t *testing.T) {
 
 	//Setup
 	db, err := dao.InitDb()
-	dao.AddClient(model.Client{
+	dao.AddClient(dao.Client{
 		ID:    6,
 		Name:  "Duduzão  já existente and the bala",
 		Email: "duplicado@ilegal.com",
@@ -389,7 +388,7 @@ func TestPostBadClientWithSameEmail(t *testing.T) {
 	testServer := httptest.NewServer(routers.CreateRouters())
 	defer testServer.Close()
 
-	body, _ := json.Marshal(model.Client{ID: 5, Name: "Duduzão the bala tentando", Email: "duplicado@ilegal.com", Phone: "55"})
+	body, _ := json.Marshal(dao.Client{ID: 5, Name: "Duduzão the bala tentando", Email: "duplicado@ilegal.com", Phone: "55"})
 
 	resp, err := http.Post(fmt.Sprintf("%s/v1/client", testServer.URL), "application/json", bytes.NewBuffer(body))
 	b, err := ioutil.ReadAll(resp.Body)
@@ -418,7 +417,7 @@ func TestDeleteClient(t *testing.T) {
 		t.Fatal("Error in initializing DB")
 	}
 
-	clientInserted := model.Client{
+	clientInserted := dao.Client{
 		ID:    999,
 		Name:  "You'll die mother fu....",
 		Email: "bad@bad.com",
@@ -482,7 +481,7 @@ func TestUpdateClient(t *testing.T) {
 		t.Fatal("Error in initializing DB")
 	}
 
-	clientInserted := model.Client{
+	clientInserted := dao.Client{
 		ID:    999,
 		Name:  "You'll die mother fu....",
 		Email: "bad@bad.com",
@@ -491,7 +490,7 @@ func TestUpdateClient(t *testing.T) {
 
 	dao.AddClient(clientInserted, db)
 
-	clientUpdated := model.Client{
+	clientUpdated := dao.Client{
 		Name:  "I'm new baby!",
 		Email: "new@new.com",
 		Phone: "66",
